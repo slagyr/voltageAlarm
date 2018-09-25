@@ -14,7 +14,7 @@ public:
     int getSW();
     int getDT();
     int getCLK();
-    void configurePins() const;
+    void setup() const;
     bool hasUpdate();
     void rest();
     void handleRotation();
@@ -30,11 +30,11 @@ private:
     uint8_t sw;
     uint8_t dt;
     uint8_t clk;
-    int position;
-    bool updated;
+    volatile int position;
+    volatile bool updated;
+    volatile bool clicked;
     int debounceDelay;
     unsigned long lastEventTime;
-    bool clicked;
 
     bool notBounced();
 };

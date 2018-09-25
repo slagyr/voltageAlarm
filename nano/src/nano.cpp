@@ -30,12 +30,17 @@ void setup() {
     pinMode(buzzer, OUTPUT);
     pinMode(FETPin, OUTPUT);
 
-    rotary.configurePins();
+    rotary.setup();
     attachInterrupt(digitalPinToInterrupt(rotary.getSW()), rotaryClicked, FALLING);
     attachInterrupt(digitalPinToInterrupt(rotary.getCLK()), rotaryRotated, FALLING);
 
     lcd.begin(16, 2);
     lcd.print("Hello, World!");
+    lcd.cursor();
+    lcd.blink();
+
+    tone(buzzer, NOTE_C5, 5000);
+
 }
 
 void loop() {
@@ -51,6 +56,7 @@ void loop() {
 
     lcd.setCursor(0, 1);
     lcd.print(millis() / 1000);
+    lcd.setCursor(0, 1);
 
 //    playPassive();
 

@@ -13,7 +13,7 @@ Rotary::Rotary(Hardware *hardware, uint8_t sw, uint8_t dt, uint8_t clk) {
     lastEventTime = 0;
 }
 
-void Rotary::configurePins() const {
+void Rotary::setup() const {
     hardware->pinToInput(sw);
     hardware->pinToInput(dt);
     hardware->pinToInput(clk);

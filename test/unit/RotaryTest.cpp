@@ -1,4 +1,4 @@
-#include <gtest/gtest.h> // googletest header file
+#include <gtest/gtest.h>
 #include "Rotary.h"
 #include "MockHardware.h"
 
@@ -11,7 +11,7 @@ protected:
     virtual void SetUp() {
         hardware = new MockHardware();
         rotary = new Rotary(hardware, 1, 2, 3);
-        rotary->configurePins();
+        rotary->setup();
     }
 
     virtual void TearDown() {

@@ -5,6 +5,10 @@ void MockHardware::pinToInput(uint8_t pin) {
     pinModes[pin] = "INPUT";
 }
 
+void MockHardware::pinToOutput(uint8_t pin) {
+    pinModes[pin] = "OUTPUT";
+}
+
 int MockHardware::readDigitalPin(uint8_t pin) {
     if (pinReads[pin].empty())
         return -1;
@@ -39,4 +43,8 @@ void MockHardware::setPinHigh(uint8_t pin) {
 
 void MockHardware::setPinLow(uint8_t pin) {
     digitalWrites[pin] = "LOW";
+}
+
+void MockHardware::playNote(unsigned int frequency, unsigned long duration) {
+    notesPlayed.push_back(new Note(frequency, duration));
 }
