@@ -1,10 +1,11 @@
 #include "MockHardware.h"
+#include <iostream>
 
 void MockHardware::pinToInput(uint8_t pin) {
-    pins[pin] = "INPUT";
+    pinModes[pin] = "INPUT";
 }
 
-int MockHardware::digitalRead(uint8_t pin) {
+int MockHardware::readDigitalPin(uint8_t pin) {
     if (pinReads[pin].empty())
         return -1;
     else {
@@ -22,4 +23,20 @@ unsigned long MockHardware::getMillis() {
         millisReads.pop();
         return value;
     }
+}
+
+void MockHardware::print(const char *value) {
+    cout << value;
+}
+
+void MockHardware::print(int value) {
+    cout << value;
+}
+
+void MockHardware::setPinHigh(uint8_t pin) {
+    digitalWrites[pin] = "HIGH";
+}
+
+void MockHardware::setPinLow(uint8_t pin) {
+    digitalWrites[pin] = "LOW";
 }

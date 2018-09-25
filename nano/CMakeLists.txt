@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.2)
 project(nano)
 
+add_subdirectory(../core)
 include(CMakeListsPrivate.txt)
 
 add_custom_target(

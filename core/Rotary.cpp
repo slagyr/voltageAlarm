@@ -17,6 +17,7 @@ void Rotary::configurePins() const {
     hardware->pinToInput(sw);
     hardware->pinToInput(dt);
     hardware->pinToInput(clk);
+    hardware->setPinHigh(sw);
 }
 
 Hardware *Rotary::getHardware() {
@@ -39,12 +40,6 @@ int Rotary::getCLK() {
     return clk;
 }
 
-Rotary *Rotary::init(Hardware *hardware, uint8_t sw, uint8_t dt, uint8_t clk) {
-    auto *rotary = new Rotary(hardware, sw, dt, clk);
-    rotary->configurePins();
-    return rotary;
-}
-
 bool Rotary::hasUpdate() {
     return updated;
 }
@@ -56,9 +51,9 @@ void Rotary::rest() {
 
 void Rotary::handleRotation() {
     if (notBounced()) {
-        int clkValue = hardware->digitalRead(clk);
-        int dtValue = hardware->digitalRead(dt);
-        position = clkValue == dtValue ? position + 1 : position - 1;
+        int clkValue = hardware->readDigitalPin(clk);
+        int dtValue = hardware->readDigitalPin(dt);
+        position += clkValue == dtValue ? 1 : - 1;
         updated = true;
     }
 }

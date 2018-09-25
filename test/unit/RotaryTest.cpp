@@ -10,7 +10,8 @@ protected:
 
     virtual void SetUp() {
         hardware = new MockHardware();
-        rotary = Rotary::init(hardware, 1, 2, 3);
+        rotary = new Rotary(hardware, 1, 2, 3);
+        rotary->configurePins();
     }
 
     virtual void TearDown() {
@@ -28,9 +29,10 @@ TEST_F(RotaryTest, CreationWithPins) {
 }
 
 TEST_F(RotaryTest, SettingUpPins) {
-    EXPECT_EQ("INPUT", hardware->pins[1]);
-    EXPECT_EQ("INPUT", hardware->pins[2]);
-    EXPECT_EQ("INPUT", hardware->pins[3]);
+    EXPECT_EQ("INPUT", hardware->pinModes[1]);
+    EXPECT_EQ("INPUT", hardware->pinModes[2]);
+    EXPECT_EQ("INPUT", hardware->pinModes[3]);
+    EXPECT_EQ("HIGH", hardware->digitalWrites[1]);
 }
 
 TEST_F(RotaryTest, UpdateStatus) {

@@ -8,12 +8,13 @@ class Rotary {
 
 public:
 
-    static Rotary* init(Hardware *hardware, uint8_t sw, uint8_t dt, uint8_t clk);
+    Rotary(Hardware *hardware, uint8_t sw, uint8_t dt, uint8_t clk);
     Hardware* getHardware();
     int getPosition();
     int getSW();
     int getDT();
     int getCLK();
+    void configurePins() const;
     bool hasUpdate();
     void rest();
     void handleRotation();
@@ -35,8 +36,6 @@ private:
     unsigned long lastEventTime;
     bool clicked;
 
-    Rotary(Hardware *hardware, uint8_t sw, uint8_t dt, uint8_t clk);
-    void configurePins() const;
     bool notBounced();
 };
 
