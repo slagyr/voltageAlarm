@@ -21,20 +21,19 @@ void playPassive();
 void note(unsigned int thisNote, unsigned long duration);
 
 void handleRotary();
-
-void rotaryRotated();
-
-void rotaryClicked();
+void rotaryRotated() {rotary.handleRotation();}
+void rotaryClicked() {rotary.handleClick();}
 
 void setup() {
     Serial.begin(9600);
 
-    rotary.configurePins();
+    pinMode(buzzer, OUTPUT);
     pinMode(FETPin, OUTPUT);
+
+    rotary.configurePins();
     attachInterrupt(digitalPinToInterrupt(rotary.getSW()), rotaryClicked, FALLING);
     attachInterrupt(digitalPinToInterrupt(rotary.getCLK()), rotaryRotated, FALLING);
 
-    pinMode(buzzer, OUTPUT);
     lcd.begin(16, 2);
     lcd.print("Hello, World!");
 }
@@ -106,14 +105,6 @@ void playPassive() {
 void note(unsigned int thisNote, unsigned long duration) {
     tone(buzzer, thisNote, duration);
     delay(duration + 10);
-}
-
-void rotaryRotated() {
-    rotary.handleRotation();
-}
-
-void rotaryClicked() {
-    rotary.handleClick();
 }
 
 void handleRotary() {
