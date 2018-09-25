@@ -38,20 +38,20 @@ TEST_F(MusicTest, AddingNotes) {
 
     auto note = music->getNote(0);
     EXPECT_EQ(NOTE_C5, note->frequency);
-    EXPECT_EQ(600, note->duration);
+    EXPECT_EQ(2000, note->duration);
 }
 
 TEST_F(MusicTest, NoteDurations) {
-    EXPECT_EQ(1200, music->getNoteDuration(DOUBLE_NOTE));
-    EXPECT_EQ(600, music->getNoteDuration(WHOLE_NOTE));
-    EXPECT_EQ(525, music->getNoteDuration(SEVEN_EIGHTHS_NOTE));
-    EXPECT_EQ(450, music->getNoteDuration(THREE_QUARTERS_NOTE));
-    EXPECT_EQ(375, music->getNoteDuration(FIVE_EIGHTHS_NOTE));
-    EXPECT_EQ(300, music->getNoteDuration(HALF_NOTE));
-    EXPECT_EQ(225, music->getNoteDuration(THREE_EIGHTHS_NOTE));
-    EXPECT_EQ(150, music->getNoteDuration(QUARTER_NOTE));
-    EXPECT_EQ(75, music->getNoteDuration(EIGHTH_NOTE));
-    EXPECT_EQ(37, music->getNoteDuration(SIXTEENTH_NOTE));
+    EXPECT_EQ(4000, music->getNoteDuration(DOUBLE_NOTE));
+    EXPECT_EQ(2000, music->getNoteDuration(WHOLE_NOTE));
+    EXPECT_EQ(1750, music->getNoteDuration(SEVEN_EIGHTHS_NOTE));
+    EXPECT_EQ(1500, music->getNoteDuration(THREE_QUARTERS_NOTE));
+    EXPECT_EQ(1250, music->getNoteDuration(FIVE_EIGHTHS_NOTE));
+    EXPECT_EQ(1000, music->getNoteDuration(HALF_NOTE));
+    EXPECT_EQ(750, music->getNoteDuration(THREE_EIGHTHS_NOTE));
+    EXPECT_EQ(500, music->getNoteDuration(QUARTER_NOTE));
+    EXPECT_EQ(250, music->getNoteDuration(EIGHTH_NOTE));
+    EXPECT_EQ(125, music->getNoteDuration(SIXTEENTH_NOTE));
 
     music->setWholeNoteDuration(800);
 
@@ -88,21 +88,21 @@ TEST_F(MusicTest, PlaySimpleSong) {
     music->play();
     EXPECT_EQ(1, hardware->notesPlayed.size());
     EXPECT_EQ(NOTE_C5, hardware->notesPlayed[0]->frequency);
-    EXPECT_EQ(590, hardware->notesPlayed[0]->duration);
+    EXPECT_EQ(1990, hardware->notesPlayed[0]->duration);
     hardware->notesPlayed.clear();
 
-    hardware->millisReads.push(300);
+    hardware->millisReads.push(1000);
     music->play();
     EXPECT_EQ(0, hardware->notesPlayed.size());
 
-    hardware->millisReads.push(600);
+    hardware->millisReads.push(2000);
     music->play();
     EXPECT_EQ(1, hardware->notesPlayed.size());
     EXPECT_EQ(NOTE_G5, hardware->notesPlayed[0]->frequency);
-    EXPECT_EQ(290, hardware->notesPlayed[0]->duration);
+    EXPECT_EQ(990, hardware->notesPlayed[0]->duration);
     hardware->notesPlayed.clear();
 
-    hardware->millisReads.push(900);
+    hardware->millisReads.push(3000);
     music->play();
     EXPECT_EQ(0, hardware->notesPlayed.size());
 }
@@ -121,7 +121,7 @@ TEST_F(MusicTest, LoopingValues) {
 TEST_F(MusicTest, NotLooping) {
     music->addNote(NOTE_C5, WHOLE_NOTE);
     music->setLoop(false);
-    for(int i = 0; i < 6001; i += 100) {
+    for(int i = 0; i < 20001; i += 500) {
         hardware->millisReads.push(i);
         music->play();
     }
@@ -131,8 +131,8 @@ TEST_F(MusicTest, NotLooping) {
 TEST_F(MusicTest, Looping) {
     music->addNote(NOTE_C5, WHOLE_NOTE);
     music->setLoop(true);
-    music->setLoopDelay(600);
-    for(int i = 0; i < 6000; i += 100) {
+    music->setLoopDelay(2000);
+    for(int i = 0; i < 20000; i += 500) {
         hardware->millisReads.push(i);
         music->play();
     }
@@ -144,11 +144,11 @@ TEST_F(MusicTest, Rest) {
     music->addNote(NOTE_C5, WHOLE_NOTE);
 
     music->play();
-    hardware->millisReads.push(500);
+    hardware->millisReads.push(1500);
     music->play();
     EXPECT_EQ(0, hardware->notesPlayed.size());
 
-    hardware->millisReads.push(700);
+    hardware->millisReads.push(3000);
     music->play();
     EXPECT_EQ(1, hardware->notesPlayed.size());
     EXPECT_EQ(NOTE_C5, hardware->notesPlayed[0]->frequency);

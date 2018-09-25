@@ -21,7 +21,7 @@ Music::Music(Hardware *hardware, uint8_t pin) {
 
 void Music::setup() {
     hardware->pinToOutput(pin);
-    setWholeNoteDuration(600);
+    setWholeNoteDuration(2000);
 }
 
 Hardware *Music::getHardware() {
