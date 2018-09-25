@@ -35,15 +35,15 @@ uint8_t Music::getPin() {
 void Music::addNote(unsigned int frequency, unsigned long duration) {
     if(duration < 10)
         duration = durations[duration];
-    notes.push_back(new Note(frequency, duration));
+    notes.add(new Note(frequency, duration));
 }
 
-unsigned long Music::countNotes() {
+int Music::countNotes() {
     return notes.size();
 }
 
 Note *Music::getNote(int index) {
-    return notes[index];
+    return notes.get(index);
 }
 
 void Music::setWholeNoteDuration(unsigned long duration) {
@@ -72,9 +72,9 @@ void Music::setPauseBetweenNotes(unsigned long duration) {
 }
 
 void Music::play() {
-    unsigned long noteCount = notes.size();
+    int noteCount = notes.size();
     if(nextNote < noteCount) {
-        Note *note = notes[nextNote];
+        Note *note = notes.get(nextNote);
         unsigned long now = hardware->getMillis();
         if(now >= finishTime)
         {
@@ -84,7 +84,8 @@ void Music::play() {
                 nextNote = 0;
                 finishTime += loopDelay;
             }
-            hardware->playNote(note->frequency, note->duration - pauseBetweenNotes);
+            if(note->frequency >= 31) // otherwise a rest
+                hardware->playNote(pin, note->frequency, note->duration - pauseBetweenNotes);
         }
     }
 }

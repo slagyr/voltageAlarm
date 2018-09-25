@@ -8,6 +8,14 @@
 
 using namespace std;
 
+class PlayedNote {
+public:
+    PlayedNote(uint8_t pin, unsigned int frequency, unsigned long duration);
+    uint8_t pin;
+    unsigned int frequency;
+    unsigned long duration;
+};
+
 class MockHardware : public Hardware {
 
 public:
@@ -21,13 +29,13 @@ public:
     void setPinHigh(uint8_t pin) override;
     void setPinLow(uint8_t pin) override;
 
-    void playNote(unsigned int frequency, unsigned long duration) override;
+    void playNote(uint8_t pin, unsigned int frequency, unsigned long duration) override;
 
     string pinModes[99];
     queue<int> pinReads[99] ;
     queue<unsigned int> millisReads;
     string digitalWrites[99];
-    vector<Note*> notesPlayed;
+    vector<PlayedNote*> notesPlayed;
 };
 
 

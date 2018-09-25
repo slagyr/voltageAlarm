@@ -2,8 +2,7 @@
 #define MUSIC_H
 
 #include "Hardware.h"
-#include <vector>
-using namespace std;
+#include "LinkedList.h"
 
 class Note {
 public:
@@ -21,7 +20,7 @@ public:
     void setup();
     uint8_t getPin();
     void addNote(unsigned int frequency, unsigned long duration);
-    unsigned long countNotes();
+    int countNotes();
     Note* getNote(int index);
     void setWholeNoteDuration(unsigned long duration);
     unsigned long getNoteDuration(int index);
@@ -37,7 +36,7 @@ public:
 private:
     Hardware *hardware;
     uint8_t pin;
-    vector<Note*> notes;
+    LinkedList<Note*> notes;
     unsigned long durations[10];
     unsigned long pauseBetweenNotes;
     int nextNote;
@@ -58,6 +57,7 @@ private:
 #define SIXTEENTH_NOTE 9
 
 
+#define NOTE_REST 0
 #define NOTE_B0  31
 #define NOTE_C1  33
 #define NOTE_CS1 35

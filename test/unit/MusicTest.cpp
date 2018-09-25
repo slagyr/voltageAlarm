@@ -138,3 +138,19 @@ TEST_F(MusicTest, Looping) {
     }
     EXPECT_EQ(5, hardware->notesPlayed.size());
 }
+
+TEST_F(MusicTest, Rest) {
+    music->addNote(NOTE_REST, WHOLE_NOTE);
+    music->addNote(NOTE_C5, WHOLE_NOTE);
+
+    music->play();
+    hardware->millisReads.push(500);
+    music->play();
+    EXPECT_EQ(0, hardware->notesPlayed.size());
+
+    hardware->millisReads.push(700);
+    music->play();
+    EXPECT_EQ(1, hardware->notesPlayed.size());
+    EXPECT_EQ(NOTE_C5, hardware->notesPlayed[0]->frequency);
+}
+

@@ -9,6 +9,8 @@ class ArduinoHardware : public Hardware {
 public:
     void pinToInput(uint8_t pin) override;
 
+    void pinToOutput(uint8_t pin) override;
+
     int readDigitalPin(uint8_t pin) override;
 
     unsigned long getMillis() override;
@@ -20,6 +22,8 @@ public:
     void print(const char *value) override;
 
     void print(int value) override;
+
+    void playNote(uint8_t pin, unsigned int frequency, unsigned long duration) override;
 
 };
 

@@ -45,6 +45,12 @@ void MockHardware::setPinLow(uint8_t pin) {
     digitalWrites[pin] = "LOW";
 }
 
-void MockHardware::playNote(unsigned int frequency, unsigned long duration) {
-    notesPlayed.push_back(new Note(frequency, duration));
+void MockHardware::playNote(uint8_t pin, unsigned int frequency, unsigned long duration) {
+    notesPlayed.push_back(new PlayedNote(pin, frequency, duration));
+}
+
+PlayedNote::PlayedNote(uint8_t pin, unsigned int frequency, unsigned long duration) {
+    this->pin = pin;
+    this->frequency = frequency;
+    this->duration = duration;
 }

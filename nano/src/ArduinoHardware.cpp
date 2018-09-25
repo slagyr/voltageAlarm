@@ -6,6 +6,11 @@ void ArduinoHardware::pinToInput(uint8_t pin) {
 }
 
 
+void ArduinoHardware::pinToOutput(uint8_t pin) {
+    pinMode(pin, OUTPUT);
+
+}
+
 int ArduinoHardware::readDigitalPin(uint8_t pin) {
     return digitalRead(pin);
 }
@@ -29,3 +34,8 @@ void ArduinoHardware::setPinHigh(uint8_t pin) {
 void ArduinoHardware::setPinLow(uint8_t pin) {
     digitalWrite(pin, LOW);
 }
+
+void ArduinoHardware::playNote(uint8_t pin, unsigned int frequency, unsigned long duration) {
+    tone(pin, frequency, duration);
+}
+
