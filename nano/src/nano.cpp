@@ -4,7 +4,6 @@
 #include "Rotary.h"
 #include "ArduinoHardware.h"
 
-#define DEBOUNCE_MILLIS 50
 #define Vpin 0
 #define FETPin 6
 #define buzzer 5
@@ -32,7 +31,6 @@ void setup() {
 
     rotary.configurePins();
     pinMode(FETPin, OUTPUT);
-    digitalWrite(PinSW, HIGH);
     attachInterrupt(digitalPinToInterrupt(rotary.getSW()), rotaryClicked, FALLING);
     attachInterrupt(digitalPinToInterrupt(rotary.getCLK()), rotaryRotated, FALLING);
 
