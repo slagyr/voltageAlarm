@@ -1,6 +1,8 @@
 #include "Controller.h"
 
-#include "stdio.h"
+#ifndef ARDUINO_H
+    #include "stdio.h"
+#endif
 
 Controller::Controller(Hardware *hardware, VoltageSensor *loadPositive, VoltageSensor *loadNegative, Display *display) {
     this->hardware = hardware;

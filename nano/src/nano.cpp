@@ -1,12 +1,12 @@
 #include "Arduino.h"
-//#include "LiquidCrystal.h"
-//#include "Rotary.h"
-//#include "Music.h"
-//#include "ArduinoHardware.h"
-//#include "songs.h"
-//#include "VoltageSensor.h"
-//#include "Controller.h"
-//#include "LCDDisplay.h"
+#include "LiquidCrystal.h"
+#include "Rotary.h"
+#include "Music.h"
+#include "ArduinoHardware.h"
+#include "songs.h"
+#include "VoltageSensor.h"
+#include "Controller.h"
+#include "LCDDisplay.h"
 
 #define Vpin 0
 #define FETPin 6
@@ -15,51 +15,46 @@
 
 
 int vIn;
-//Hardware *hardware;
-//Rotary *rotary;
-//LiquidCrystal *lcd;
-//Display *display;
-//Music *warning;
-//Music *alarm;
-//VoltageSensor *loadPositiveSensor;
-//VoltageSensor *loadNagativeSensor;
-//Controller *controller;
+Hardware *hardware;
+Rotary *rotary;
+LiquidCrystal *lcd;
+Display *display;
+Music *warning;
+Music *alarm;
+VoltageSensor *loadPositiveSensor;
+VoltageSensor *loadNagativeSensor;
+Controller *controller;
 
-//void handleRotary();
-//
-//void rotaryRotated() { rotary->handleRotation(); }
-//
-//void rotaryClicked() { rotary->handleClick(); }
+void handleRotary();
+
+void rotaryRotated() { rotary->handleRotation(); }
+
+void rotaryClicked() { rotary->handleClick(); }
 
 void setup() {
     Serial.begin(9600);
 
-//    while (!Serial) {
-//        delay(10);
-//    }
-//    Serial.println("Serial Ready!");
+    hardware = new ArduinoHardware();
+    rotary = new Rotary(hardware, 2, 4, 3);
+    lcd = new LiquidCrystal(7, 8, 9, 10, 11, 12);
+    display = new LCDDisplay(lcd);
+    warning = new Music(hardware, 5);
+    alarm = new Music(hardware, 5);
+    loadPositiveSensor = new VoltageSensor(hardware, 0, -0.2);
+    loadNagativeSensor = new VoltageSensor(hardware, 1, -0.2);
+    controller = new Controller(hardware, loadPositiveSensor, loadNagativeSensor, display);
 
-//    hardware = new ArduinoHardware();
-//    rotary = new Rotary(hardware, 2, 4, 3);
-//    lcd = new LiquidCrystal(7, 8, 9, 10, 11, 12);
-//    display = new LCDDisplay(lcd);
-//    warning = new Music(hardware, 5);
-//    alarm = new Music(hardware, 5);
-//    loadPositiveSensor = new VoltageSensor(hardware, 0, -0.2);
-//    loadNagativeSensor = new VoltageSensor(hardware, 1, -0.2);
-//    controller = new Controller(hardware, loadPositiveSensor, loadNagativeSensor, display);
-//
-//
-//    pinMode(FETPin, OUTPUT);
-//
-//    rotary->setup();
-//    attachInterrupt(digitalPinToInterrupt(rotary->getSW()), rotaryClicked, FALLING);
-//    attachInterrupt(digitalPinToInterrupt(rotary->getCLK()), rotaryRotated, FALLING);
-//
-//    warning->setup();
-//    hereComesTheSun(*warning);
-//    alarm->setup();
-//    anotherOneBitesTheDust(*alarm);
+
+    pinMode(FETPin, OUTPUT);
+
+    rotary->setup();
+    attachInterrupt(digitalPinToInterrupt(rotary->getSW()), rotaryClicked, FALLING);
+    attachInterrupt(digitalPinToInterrupt(rotary->getCLK()), rotaryRotated, FALLING);
+
+    warning->setup();
+    hereComesTheSun(warning);
+    alarm->setup();
+    anotherOneBitesTheDust(alarm);
 
 //    lcd.print("Hello, World!");
 //    lcd.cursor();
@@ -68,10 +63,7 @@ void setup() {
 }
 
 void loop() {
-    Serial.println("Starting loop!");
-    Serial.print("millis(): ");
-    Serial.println(millis());
-//    controller->tick(millis());
+    controller->tick(millis());
 
 //    digitalWrite(FETPin, HIGH);
 
@@ -91,18 +83,18 @@ void loop() {
 
 //    playPassive();
 
-//    handleRotary();
+    handleRotary();
 
 }
-//
-//void handleRotary() {
-//    if (rotary->hasUpdate()) {
-//        if (rotary->wasClicked())
-//            rotary->setPosition(0);
-//        rotary->rest();
-//
-//        Serial.print("rotaryPosition: ");
-//        Serial.println(rotary->getPosition());
-//    }
-//}
+
+void handleRotary() {
+    if (rotary->hasUpdate()) {
+        if (rotary->wasClicked())
+            rotary->setPosition(0);
+        rotary->rest();
+
+        Serial.print("rotaryPosition: ");
+        Serial.println(rotary->getPosition());
+    }
+}
 
