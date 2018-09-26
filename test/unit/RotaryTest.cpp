@@ -46,8 +46,8 @@ TEST_F(RotaryTest, UpdateStatus) {
 TEST_F(RotaryTest, HandlesRotationClockwise) {
     rotary->rest();
     hardware->millisReads.push(123);
-    hardware->pinReads[3].push(0);
-    hardware->pinReads[2].push(0);
+    hardware->digitalReads[3].push(0);
+    hardware->digitalReads[2].push(0);
 
     rotary->handleRotation();
 
@@ -58,8 +58,8 @@ TEST_F(RotaryTest, HandlesRotationClockwise) {
 TEST_F(RotaryTest, HandlesRotationCounterClockwise) {
     rotary->rest();
     hardware->millisReads.push(123);
-    hardware->pinReads[3].push(1);
-    hardware->pinReads[2].push(0);
+    hardware->digitalReads[3].push(1);
+    hardware->digitalReads[2].push(0);
 
     rotary->handleRotation();
 
@@ -76,8 +76,8 @@ TEST_F(RotaryTest, DebouceDelayValue) {
 TEST_F(RotaryTest, DebouncingWillIngoreRapidRotations) {
     rotary->rest();
     hardware->millisReads.push(10);
-    hardware->pinReads[3].push(1);
-    hardware->pinReads[2].push(0);
+    hardware->digitalReads[3].push(1);
+    hardware->digitalReads[2].push(0);
 
     rotary->handleRotation();
 

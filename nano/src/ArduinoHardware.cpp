@@ -15,6 +15,10 @@ int ArduinoHardware::readDigitalPin(uint8_t pin) {
     return digitalRead(pin);
 }
 
+int ArduinoHardware::readAnalogPin(uint8_t pin) {
+    return analogRead(pin);
+}
+
 unsigned long ArduinoHardware::getMillis() {
     return millis();
 }
@@ -37,5 +41,9 @@ void ArduinoHardware::setPinLow(uint8_t pin) {
 
 void ArduinoHardware::playNote(uint8_t pin, unsigned int frequency, unsigned long duration) {
     tone(pin, frequency, duration);
+}
+
+void ArduinoHardware::sleep(unsigned long duration) {
+    delay(duration);
 }
 

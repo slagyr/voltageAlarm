@@ -13,6 +13,8 @@ public:
 
     int readDigitalPin(uint8_t pin) override;
 
+    int readAnalogPin(uint8_t pin) override;
+
     unsigned long getMillis() override;
 
     void setPinHigh(uint8_t pin) override;
@@ -25,6 +27,7 @@ public:
 
     void playNote(uint8_t pin, unsigned int frequency, unsigned long duration) override;
 
+    void sleep(unsigned long duration) override;
 };
 
 
