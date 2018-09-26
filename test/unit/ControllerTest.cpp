@@ -69,3 +69,4 @@ TEST_F(ControllerTest, HomeScreenDisplay) {
     EXPECT_STREQ("Voltage: 4.2 3.5", display->line1);
     EXPECT_STREQ("Cutoff: < 2.5", display->line2);
 }
+

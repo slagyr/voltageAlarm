@@ -78,8 +78,10 @@ VoltageSensor *Controller::getLoadNegative() const {
 }
 
 void Splash::update() {
-    controller->getDisplay()->setLine1("Volt Alarm v1.0");
-    controller->getDisplay()->setLine2("Micah Martin");
+    if(!loaded) {
+        controller->getDisplay()->show("Volt Alarm v1.0", "Micah Martin");
+        loaded = true;
+    }
 }
 
 void Splash::timeout() {
@@ -90,18 +92,39 @@ void HomeScreen::timeout() {
     // doesn't timeout
 }
 
-void HomeScreen::update() {
-    char line1[17];
-    char line2[17];
+int ones(double d) {
+    return (int)(d + 0.05) % 10;
+}
 
+int tenths(double d) {
+    return (int)(d * 10 + 0.5) % 10;
+}
+
+bool dEq(double d1, double d2) {
+    double diff = d1 - d2;
+    return -0.05 < diff && diff < 0.5;
+}
+
+void HomeScreen::update() {
     double pVolts = controller->getLoadPositiveSensor()->readVoltage();
     double nVolts = controller->getLoadNegativeSensor()->readVoltage();
-    const char *direction = controller->isCutoffAbove() ? ">" : "<";
-    double cVolts = controller->getCutoffVoltage();
+    bool pVoltChanged = !dEq(lastPVolts, pVolts);
+    bool nVoltChanged = !dEq(lastNVolts, nVolts);
 
-    sprintf(line1, "Voltage: %1.1f %1.1f", pVolts, nVolts);
-    sprintf(line2, "Cutoff: %s %1.1f", direction, cVolts);
+    if(pVoltChanged || nVoltChanged) {
+        lastPVolts = pVolts;
+        lastNVolts = nVolts;
 
-    controller->getDisplay()->setLine1(line1);
-    controller->getDisplay()->setLine2(line2);
+        char line1[17];
+        char line2[17];
+
+        const char *direction = controller->isCutoffAbove() ? ">" : "<";
+        double cVolts = controller->getCutoffVoltage();
+
+        sprintf(line1, "Voltage: %i.%i %i.%i",
+                ones(pVolts), tenths(pVolts), ones(nVolts), tenths(nVolts));
+        sprintf(line2, "Cutoff: %s %i.%i   ", direction, ones(cVolts), tenths(cVolts));
+
+        controller->getDisplay()->show(line1, line2);
+    }
 }

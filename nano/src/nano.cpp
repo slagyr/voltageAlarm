@@ -8,13 +8,8 @@
 #include "Controller.h"
 #include "LCDDisplay.h"
 
-#define Vpin 0
 #define FETPin 6
 
-// 2.5V with diode reads in at 497
-
-
-int vIn;
 Hardware *hardware;
 Rotary *rotary;
 LiquidCrystal *lcd;
@@ -40,10 +35,9 @@ void setup() {
     display = new LCDDisplay(lcd);
     warning = new Music(hardware, 5);
     alarm = new Music(hardware, 5);
-    loadPositiveSensor = new VoltageSensor(hardware, 0, -0.2);
-    loadNagativeSensor = new VoltageSensor(hardware, 1, -0.2);
+    loadPositiveSensor = new VoltageSensor(hardware, 0, -0.0);
+    loadNagativeSensor = new VoltageSensor(hardware, 3, -0.0);
     controller = new Controller(hardware, loadPositiveSensor, loadNagativeSensor, display);
-
 
     pinMode(FETPin, OUTPUT);
 
@@ -84,7 +78,6 @@ void loop() {
 //    playPassive();
 
     handleRotary();
-
 }
 
 void handleRotary() {

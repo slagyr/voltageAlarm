@@ -5,8 +5,7 @@
 class Display {
 
 public:
-    virtual void setLine1(const char *line) = 0;
-    virtual void setLine2(const char *line) = 0;
+    virtual void show(const char *line1, const char *line2) = 0;
 };
 
 

@@ -7,9 +7,7 @@
 class LCDDisplay : public Display {
 public:
     LCDDisplay(LiquidCrystal *lcd);
-    void setLine1(const char *line) override;
-
-    void setLine2(const char *line) override;
+    void show(const char *line1, const char *line2) override;
 
     LiquidCrystal *lcd;
 };

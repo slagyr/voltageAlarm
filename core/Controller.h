@@ -35,6 +35,9 @@ public:
     void update() override;
 
     void timeout() override;
+
+private:
+    bool loaded = false;
 };
 
 class HomeScreen : public Screen {
@@ -48,6 +51,9 @@ public:
     void update() override;
 
     void timeout() override;
+
+    double lastPVolts = -99.9;
+    double lastNVolts = -99.9;
 };
 
 
