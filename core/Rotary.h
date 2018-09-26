@@ -24,6 +24,8 @@ public:
     bool wasClicked();
     void setPosition(int position);
 
+    void setClicked(bool b);
+
 private:
 
     Hardware *hardware;

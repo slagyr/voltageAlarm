@@ -5,106 +5,143 @@
 #include "Hardware.h"
 #include "VoltageSensor.h"
 #include "Display.h"
+#include "Rotary.h"
+#include "Config.h"
+
+// Will prevent screen from updating more than 5 times per second
+#define IdleUpdateInterval 200
 
 class Controller;
 
 class Screen {
 public:
-    virtual const char *getName() = 0;
+    const char *getName() { return name; };
 
-    virtual unsigned long getIdleTimeout() = 0;
+    unsigned long getIdleTimeout() { return timeout; };
+
+    virtual void enter() = 0;
 
     virtual void update() = 0;
 
-    virtual void timeout() = 0;
-
 protected:
-    Screen(Controller *controller) { this->controller = controller; }
+    Screen(Controller *controller, const char *name);
 
     Controller *controller;
+    unsigned long timeout = 5000;
+    const char *name;
 };
 
 class Splash : public Screen {
 public:
-    Splash(Controller *controller) : Screen(controller) {}
 
-    const char *getName() override { return "Splash"; };
+    Splash(Controller *controller);
 
-    unsigned long getIdleTimeout() override { return 5000; }
+    void enter() override;
 
     void update() override;
-
-    void timeout() override;
-
-private:
-    bool loaded = false;
 };
 
 class HomeScreen : public Screen {
 public:
-    HomeScreen(Controller *controller) : Screen(controller) {}
 
-    const char *getName() override { return "Home"; };
+    HomeScreen(Controller *controller);
 
-    unsigned long getIdleTimeout() override { return 4294967295; }
+    void enter() override;
 
     void update() override;
 
-    void timeout() override;
-
     double lastPVolts = -99.9;
     double lastNVolts = -99.9;
+
+    void updateInfo();
+};
+
+class MainMenu : public Screen {
+public:
+    MainMenu(Controller *controller);
+
+    void enter() override;
+
+    void update() override;
+
+public:
+
+    void updateDisplay(int top) const;
+
+    const char *items[4];
+    Screen *screens[4];
+    int selectedIndex;
+    bool scrollingDown;
+    int lastRotaryPosition;
+};
+
+class CutoffVoltageScreen : public Screen {
+public:
+    CutoffVoltageScreen(Controller *controller);
+
+    void enter() override;
+
+    void update() override;
+
+    void updateValue() const;
+
+    float oldValue;
+    float newValue;
+    int lastRotaryPosition;
 };
 
 
 class Controller {
 
 public:
-    Controller(Hardware *hardware,
-               VoltageSensor *loadPositive,
-               VoltageSensor *loadNegative,
-               Display *display);
+    Controller(Hardware *hardware, VoltageSensor *loadPositive, VoltageSensor *loadNegative, Display *display,
+                   Rotary *rotary, Config *config);
 
-    Display *getDisplay();
-
-    Screen *getScreen();
-
-    void setScreen(Screen *screen);
-
-    Screen *getHomeScreen();
+    Hardware *getHardware() const;
 
     VoltageSensor *getLoadPositiveSensor();
 
     VoltageSensor *getLoadNegativeSensor();
 
+    Display *getDisplay();
+
+    Rotary *getRotary() const;
+
+    Config *getConfig() const;
+
+    Screen *getScreen();
+
+    void setScreen(Screen *screen);
+
     void tick(unsigned long millis);
-
-    bool isCutoffAbove();
-
-    void setCutoffAbove(bool b);
-
-    double getCutoffVoltage();
-
-    void setCutoffVoltage(double voltage);
-
-    Hardware *getHardware() const;
 
     VoltageSensor *getLoadPositive() const;
 
     VoltageSensor *getLoadNegative() const;
 
-private:
+    Screen *getHomeScreen();
 
+    Screen *getMainMenu();
+
+    Screen *getCutoffVoltageScreen() const;
+
+private:
     Hardware *hardware;
     VoltageSensor *loadPositive;
     VoltageSensor *loadNegative;
     Display *display;
+    Rotary *rotary;
+    Config *config;
+
     Screen *screen;
     Screen *splash;
     Screen *homeScreen;
+    Screen *mainMenu;
+    Screen *cutoffVoltageScreen;
+
     unsigned long lastUserEventTime = 0;
-    bool cutoffAbove = false;
-    double cutoffVoltage = 5.0;
+    unsigned long lastUpdate = 0;
+
 };
 
 

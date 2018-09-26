@@ -90,3 +90,8 @@ void Rotary::setPosition(int position) {
     this->position = position;
     updated = true;
 }
+
+void Rotary::setClicked(bool b) {
+    clicked = b;
+    updated = true;
+}

@@ -7,6 +7,7 @@
 #include "VoltageSensor.h"
 #include "Controller.h"
 #include "LCDDisplay.h"
+#include "EEPROM.h"
 
 #define FETPin 6
 
@@ -54,6 +55,8 @@ void setup() {
 //    lcd.cursor();
 //    lcd.blink();
     Serial.println("Ending setup");
+
+    EEPROM.read(0);
 }
 
 void loop() {
