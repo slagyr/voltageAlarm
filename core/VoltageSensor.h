@@ -7,18 +7,17 @@ class VoltageSensor {
 
 public:
 
-    VoltageSensor(Hardware *hardware, uint8_t pin, double inteferenceAdjustment);
+    VoltageSensor(Hardware *hardware, uint8_t pin);
     virtual double readVoltage();
     Hardware* getHardware();
     uint8_t getPin();
+    void setInterferenceAdjustment(float error);
+    float getInterferenceAdjustment();
 
+private:
     uint8_t pin;
     Hardware *hardware;
-
-    void setInterferenceAdjustment(double error);
-    double getInterferenceAdjustment();
-
-    double interferenceAdjustment = 0;
+    float interferenceAdjustment = 0;
 };
 
 #endif

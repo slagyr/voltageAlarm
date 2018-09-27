@@ -10,7 +10,7 @@ protected:
 
     virtual void SetUp() {
         hardware = new MockHardware();
-        sensor = new VoltageSensor(hardware, 7, 0.0);
+        sensor = new VoltageSensor(hardware, 7);
     }
 
     virtual void TearDown() {

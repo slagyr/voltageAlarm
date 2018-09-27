@@ -5,7 +5,7 @@
 
 class MockVoltageSensor : public VoltageSensor {
 public:
-    MockVoltageSensor() : VoltageSensor(nullptr, 0, 0.0) {
+    MockVoltageSensor() : VoltageSensor(nullptr, 0) {
     }
 
     double readVoltage() override {

@@ -24,10 +24,17 @@ Controller::Controller(Hardware *hardware,
     homeScreen = new HomeScreen(this);
     mainMenu = new MainMenu(this);
     cutoffVoltageScreen = new CutoffVoltageScreen(this);
+    cutoffDirectionScreen = new CutoffDirectionScreen(this);
+    adjustPInterferenceScreen = new AdjustPInterefenceScreen(this);
+    adjustNInterferenceScreen = new AdjustNInterefenceScreen(this);
 }
 
 void Controller::setup() {
     rotary->setup();
+
+    loadPositive->setInterferenceAdjustment(config->pVoltageInterference);
+    loadNegative->setInterferenceAdjustment(config->nVoltageInterference);
+
     setScreen(splash);
 }
 
@@ -36,9 +43,7 @@ Screen *Controller::getScreen() {
 }
 
 void Controller::setScreen(Screen *screen) {
-    hardware->println(screen->getName());
     this->screen = screen;
-    hardware->println("calling screen->enter()");
     screen->enter();
 }
 
@@ -49,12 +54,10 @@ Display *Controller::getDisplay() {
 void Controller::tick(unsigned long millis) {
 //    hardware->println("Controller::tick");
     if (millis > lastUserEventTime + screen->getIdleTimeout()) {
-        hardware->println("screen timeout");
         setScreen(getHomeScreen());
         lastUserEventTime = millis;
         lastUpdate = millis;
     } else if (rotary->hasUpdate()) {
-        hardware->println("rotary hasUpdate");
         lastUserEventTime = millis;
         lastUpdate = millis;
         screen->update();
@@ -105,18 +108,26 @@ Screen *Controller::getCutoffVoltageScreen() const {
     return cutoffVoltageScreen;
 }
 
-Screen::Screen(Controller *controller, const char *name) {
-    this->controller = controller;
-    this->name = name;
+Screen *Controller::getCutoffDirectionScreen() const {
+    return cutoffDirectionScreen;
 }
 
-Splash::Splash(Controller *controller) : Screen(controller, "Splash") {
-    timeout = 1000;
+Screen *Controller::getAdjustPInterferenceScreen() const {
+    return adjustPInterferenceScreen;
 }
+
+Screen *Controller::getAdjustNInterferenceScreen() const {
+    return adjustNInterferenceScreen;
+}
+
+Screen::Screen(Controller *controller) {
+    this->controller = controller;
+}
+
+Splash::Splash(Controller *controller) : Screen(controller) {}
 
 void Splash::enter() {
     controller->getDisplay()->hideCursor();
-    controller->getHardware()->println("Splash::enter");
     controller->getDisplay()->showLines("Volt Alarm v1.0", "Micah Martin");
 }
 
@@ -124,21 +135,41 @@ void Splash::update() {
     // do nothing
 }
 
-int ones(double d) {
+unsigned long Splash::getIdleTimeout() {
+    return 1000;
+}
+
+const char *Splash::getName() {
+    return "Splash";
+}
+
+char sign(float d) {
+    return d < 0 ? '-' : ' ';
+}
+
+int ones(float d) {
+    d = d < 0 ? d * -1 : d;
     return (int) (d + 0.05) % 10;
 }
 
-int tenths(double d) {
+int tenths(float d) {
+    d = d < 0 ? d * -1 : d;
     return (int) (d * 10 + 0.5) % 10;
 }
 
-bool dEq(double d1, double d2) {
-    double diff = d1 - d2;
+bool fEq(float d1, float d2) {
+    float diff = d1 - d2;
     return -0.05 < diff && diff < 0.5;
 }
 
-HomeScreen::HomeScreen(Controller *controller) : Screen(controller, "Home") {
-    timeout = 60000;
+HomeScreen::HomeScreen(Controller *controller) : Screen(controller) {}
+
+unsigned long HomeScreen::getIdleTimeout() {
+    return 60000;
+}
+
+const char *HomeScreen::getName() {
+    return "Home";
 }
 
 void HomeScreen::enter() {
@@ -156,8 +187,8 @@ void HomeScreen::update() {
 void HomeScreen::updateInfo(bool force) {
     double pVolts = controller->getLoadPositiveSensor()->readVoltage();
     double nVolts = controller->getLoadNegativeSensor()->readVoltage();
-    bool pVoltChanged = !dEq(lastPVolts, pVolts);
-    bool nVoltChanged = !dEq(lastNVolts, nVolts);
+    bool pVoltChanged = !fEq(lastPVolts, pVolts);
+    bool nVoltChanged = !fEq(lastNVolts, nVolts);
 
     if (force || pVoltChanged || nVoltChanged) {
         lastPVolts = pVolts;
@@ -177,18 +208,21 @@ void HomeScreen::updateInfo(bool force) {
     }
 }
 
-MainMenu::MainMenu(Controller *controller) : Screen(controller, "Main Menu") {
+MainMenu::MainMenu(Controller *controller) : Screen(controller) {
 }
 
+const char *MainMenu::getName() {
+    return "Main Menu";
+}
 
 void MainMenu::enter() {
     selectedIndex = 0;
     scrollingDown = false;
     lastRotaryPosition = 0;
     screens[0] = controller->getCutoffVoltageScreen();
-    screens[1] = controller->getHomeScreen();
-    screens[2] = controller->getHomeScreen();
-    screens[3] = controller->getHomeScreen();
+    screens[1] = controller->getCutoffDirectionScreen();
+    screens[2] = controller->getAdjustPInterferenceScreen();
+    screens[3] = controller->getAdjustNInterferenceScreen();
     updateDisplay(0);
 }
 
@@ -222,42 +256,146 @@ void MainMenu::updateDisplay(int top) const {
     display->selectLine(scrollingDown ? 1 : 0);
 }
 
-CutoffVoltageScreen::CutoffVoltageScreen(Controller *controller) : Screen(controller, "Cutoff Voltage") {}
+VotageUpdateScreen::VotageUpdateScreen(Controller *controller) : Screen(controller) {}
 
-void CutoffVoltageScreen::enter() {
-    oldValue = controller->getConfig()->cutoffVoltage;
+void VotageUpdateScreen::enter() {
+    oldValue = storedValue();
     newValue = oldValue;
-    controller->getDisplay()->showLine1("Cutoff Voltage  ");
+    controller->getDisplay()->showLine1(title());
     updateValue();
     controller->getDisplay()->showCursorAt(1, 5);
     lastRotaryPosition = controller->getRotary()->getPosition();
 }
 
-void CutoffVoltageScreen::updateValue() const {
+void VotageUpdateScreen::updateValue() const {
     char line[17];
-    sprintf(line, "-> %i.%i (was %i.%i)",
-            ones(newValue), tenths(newValue), ones(oldValue), tenths(oldValue));
+    sprintf(line, "->%c%i.%i (was%c%i.%i)",
+            sign(newValue), ones(newValue), tenths(newValue),
+            sign(oldValue), ones(oldValue), tenths(oldValue));
     controller->getDisplay()->showLine2(line);
 }
 
-void CutoffVoltageScreen::update() {
+void VotageUpdateScreen::update() {
     Rotary *rotary = controller->getRotary();
     if (rotary->hasUpdate()) {
         if (rotary->wasClicked()) {
-            controller->getConfig()->cutoffVoltage = newValue;
+            updateStoredValue(newValue);
             controller->getConfig()->save();
             controller->setScreen(controller->getHomeScreen());
         } else {
             int position = rotary->getPosition();
             int diff = position - lastRotaryPosition;
             newValue += 0.1 * diff;
-            if (newValue > 5.0)
-                newValue = 5.0;
-            else if (newValue < 0)
-                newValue = 0;
+            if (newValue > maxVoltage())
+                newValue = maxVoltage();
+            else if (newValue < minVoltage())
+                newValue = minVoltage();
             updateValue();
             lastRotaryPosition = position;
         }
     }
 }
 
+CutoffVoltageScreen::CutoffVoltageScreen(Controller *controller) : VotageUpdateScreen(controller) {}
+
+const char *CutoffVoltageScreen::getName() { return "Cutoff Voltage";}
+
+float CutoffVoltageScreen::storedValue() const {
+    return Screen::controller->getConfig()->cutoffVoltage;
+}
+
+const char *CutoffVoltageScreen::title() { return "Cutoff Voltage  ";}
+
+float CutoffVoltageScreen::minVoltage() const { return 0; }
+
+float CutoffVoltageScreen::maxVoltage() const { return 5.0; }
+
+void CutoffVoltageScreen::updateStoredValue(float value) const {
+    Screen::controller->getConfig()->cutoffVoltage = value;
+}
+
+CutoffDirectionScreen::CutoffDirectionScreen(Controller *controller) : Screen(controller) {}
+
+const char *CutoffDirectionScreen::getName() {
+    return "Cutoff Direction";
+}
+
+void CutoffDirectionScreen::enter() {
+    oldValue = controller->getConfig()->cutoffDirection;
+    newValue = oldValue;
+
+    float volts = controller->getConfig()->cutoffVoltage;
+    int d1 = ones(volts);
+    int d2 = tenths(volts);
+    char line[17];
+    sprintf(line, "< %i.%iV or > %i.%iV", d1, d2, d1, d2);
+
+    controller->getDisplay()->showLine1("Cutoff Direction");
+    controller->getDisplay()->showLine2(line);
+    updateValue();
+    lastRotaryPosition = controller->getRotary()->getPosition();
+}
+
+void CutoffDirectionScreen::update() {
+    Rotary *rotary = controller->getRotary();
+    if (rotary->hasUpdate()) {
+        if (rotary->wasClicked()) {
+            controller->getConfig()->cutoffDirection = newValue;
+            controller->getConfig()->save();
+            controller->setScreen(controller->getHomeScreen());
+        } else {
+            int position = rotary->getPosition();
+            if (position > lastRotaryPosition)
+                newValue = '>';
+            else if (position < lastRotaryPosition)
+                newValue = '<';
+            updateValue();
+            lastRotaryPosition = position;
+        }
+    }
+}
+
+void CutoffDirectionScreen::updateValue() const {
+    if (newValue == '<')
+        controller->getDisplay()->showCursorAt(1, 0);
+    else
+        controller->getDisplay()->showCursorAt(1, 10);
+}
+
+AdjustPInterefenceScreen::AdjustPInterefenceScreen(Controller *controller) : VotageUpdateScreen(controller) {}
+
+const char *AdjustPInterefenceScreen::getName() {return "Adjust +V Intrf";}
+
+float AdjustPInterefenceScreen::storedValue() const {
+    return controller->getConfig()->pVoltageInterference;
+}
+
+const char *AdjustPInterefenceScreen::title() {return "Adjust +V Intrf ";}
+
+float AdjustPInterefenceScreen::minVoltage() const { return -5.0f; }
+
+float AdjustPInterefenceScreen::maxVoltage() const { return 5.0; }
+
+void AdjustPInterefenceScreen::updateStoredValue(float value) const {
+    controller->getLoadPositiveSensor()->setInterferenceAdjustment(value);
+    controller->getConfig()->pVoltageInterference = value;
+}
+
+AdjustNInterefenceScreen::AdjustNInterefenceScreen(Controller *controller) : VotageUpdateScreen(controller) {}
+
+const char *AdjustNInterefenceScreen::getName() {return "Adjust -V Intrf";}
+
+float AdjustNInterefenceScreen::storedValue() const {
+    return controller->getConfig()->nVoltageInterference;
+}
+
+const char *AdjustNInterefenceScreen::title() {return "Adjust -V Intrf ";}
+
+float AdjustNInterefenceScreen::minVoltage() const { return -5.0f; }
+
+float AdjustNInterefenceScreen::maxVoltage() const { return 5.0; }
+
+void AdjustNInterefenceScreen::updateStoredValue(float value) const {
+    controller->getLoadNegativeSensor()->setInterferenceAdjustment(value);
+    controller->getConfig()->nVoltageInterference = value;
+}

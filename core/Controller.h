@@ -15,26 +15,28 @@ class Controller;
 
 class Screen {
 public:
-    const char *getName() { return name; };
+    virtual unsigned long getIdleTimeout() { return 5000; };
 
-    unsigned long getIdleTimeout() { return timeout; };
+    virtual const char *getName() = 0;
 
     virtual void enter() = 0;
 
     virtual void update() = 0;
 
 protected:
-    Screen(Controller *controller, const char *name);
+    explicit Screen(Controller *controller);
 
     Controller *controller;
-    unsigned long timeout = 5000;
-    const char *name;
 };
 
 class Splash : public Screen {
 public:
 
-    Splash(Controller *controller);
+    explicit Splash(Controller *controller);
+
+    unsigned long getIdleTimeout() override;
+
+    const char *getName() override;
 
     void enter() override;
 
@@ -44,7 +46,11 @@ public:
 class HomeScreen : public Screen {
 public:
 
-    HomeScreen(Controller *controller);
+    explicit HomeScreen(Controller *controller);
+
+    unsigned long getIdleTimeout() override;
+
+    const char *getName() override;
 
     void enter() override;
 
@@ -58,7 +64,9 @@ public:
 
 class MainMenu : public Screen {
 public:
-    MainMenu(Controller *controller);
+    explicit MainMenu(Controller *controller);
+
+    const char *getName() override;
 
     void enter() override;
 
@@ -78,9 +86,20 @@ public:
     int lastRotaryPosition;
 };
 
-class CutoffVoltageScreen : public Screen {
+class VotageUpdateScreen : public Screen {
+
 public:
-    CutoffVoltageScreen(Controller *controller);
+    VotageUpdateScreen(Controller *controller);
+
+    virtual float storedValue() const = 0;
+
+    virtual const char *title() = 0;
+
+    virtual float minVoltage() const = 0;
+
+    virtual float maxVoltage() const = 0;
+
+    virtual void updateStoredValue(float value) const = 0;
 
     void enter() override;
 
@@ -93,12 +112,80 @@ public:
     int lastRotaryPosition;
 };
 
+class CutoffVoltageScreen : public VotageUpdateScreen {
+public:
+    explicit CutoffVoltageScreen(Controller *controller);
+
+    const char *getName() override;
+
+    float storedValue() const override;
+
+    const char *title() override;
+
+    float minVoltage() const override;
+
+    float maxVoltage() const override;
+
+    void updateStoredValue(float value) const override;
+
+};
+
+class CutoffDirectionScreen : public Screen {
+public:
+    explicit CutoffDirectionScreen(Controller *controller);
+
+    const char *getName() override;
+
+    void enter() override;
+
+    void update() override;
+
+    void updateValue() const;
+
+    char oldValue;
+    char newValue;
+    int lastRotaryPosition;
+};
+
+class AdjustPInterefenceScreen : public VotageUpdateScreen {
+public:
+    explicit AdjustPInterefenceScreen(Controller *controller);
+
+    const char *getName() override;
+
+    float storedValue() const override;
+
+    const char *title() override;
+
+    float minVoltage() const override;
+
+    float maxVoltage() const override;
+
+    void updateStoredValue(float value) const override;
+};
+
+class AdjustNInterefenceScreen : public VotageUpdateScreen {
+public:
+    explicit AdjustNInterefenceScreen(Controller *controller);
+
+    const char *getName() override;
+
+    float storedValue() const override;
+
+    const char *title() override;
+
+    float minVoltage() const override;
+
+    float maxVoltage() const override;
+
+    void updateStoredValue(float value) const override;
+};
 
 class Controller {
 
 public:
     Controller(Hardware *hardware, VoltageSensor *loadPositive, VoltageSensor *loadNegative, Display *display,
-                   Rotary *rotary, Config *config);
+               Rotary *rotary, Config *config);
 
     void setup();
 
@@ -130,6 +217,12 @@ public:
 
     Screen *getCutoffVoltageScreen() const;
 
+    Screen *getCutoffDirectionScreen() const;
+
+    Screen *getAdjustPInterferenceScreen() const;
+
+    Screen *getAdjustNInterferenceScreen() const;
+
 private:
     Hardware *hardware;
     VoltageSensor *loadPositive;
@@ -143,10 +236,13 @@ private:
     Screen *homeScreen;
     Screen *mainMenu;
     Screen *cutoffVoltageScreen;
+    Screen *cutoffDirectionScreen;
+    Screen *adjustPInterferenceScreen;
+    Screen *adjustNInterferenceScreen;
 
     unsigned long lastUserEventTime = 0;
-    unsigned long lastUpdate = 0;
 
+    unsigned long lastUpdate = 0;
 };
 
 

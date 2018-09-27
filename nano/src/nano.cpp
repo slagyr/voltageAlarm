@@ -51,8 +51,8 @@ void setup() {
     display = new LCDDisplay(lcd);
     warning = new Music(hardware, 5);
     alarm = new Music(hardware, 5);
-    loadPositiveSensor = new VoltageSensor(hardware, 0, -0.0);
-    loadNagativeSensor = new VoltageSensor(hardware, 3, -0.0);
+    loadPositiveSensor = new VoltageSensor(hardware, 0);
+    loadNagativeSensor = new VoltageSensor(hardware, 3);
     config = new EEPROMConfig();
     controller = new Controller(hardware, loadPositiveSensor, loadNagativeSensor, display, rotary, config);
 

@@ -44,6 +44,16 @@ TEST_F(ControllerTest, AllTheThings_InTheContructor) {
     EXPECT_EQ(display, controller->getDisplay());
 }
 
+TEST_F(ControllerTest, Setup) {
+    config->nVoltageInterference = -1.2f;
+    config->pVoltageInterference = 3.4f;
+
+    controller->setup();
+
+    EXPECT_NEAR(-1.2, loadNegative->getInterferenceAdjustment(), 0.01);
+    EXPECT_NEAR(3.4, loadPositive->getInterferenceAdjustment(), 0.01);
+}
+
 TEST_F(ControllerTest, SplashScreen) {
     EXPECT_STREQ("Splash", controller->getScreen()->getName());
     controller->tick(1000);
@@ -191,5 +201,97 @@ TEST_F(ControllerTest, SavingCutoffVoltage) {
 
     EXPECT_STREQ("Home", controller->getScreen()->getName());
     EXPECT_NEAR(3.4, config->cutoffVoltage, 0.01);
+    EXPECT_EQ(true, config->saved);
+}
+
+TEST_F(ControllerTest, SelectingCuttoffDirection) {
+    controller->setScreen(controller->getMainMenu());
+    rotary->setPosition(1);
+    controller->tick(1111);
+    rotary->setClicked(true);
+    controller->tick(2222);
+
+    EXPECT_STREQ("Cutoff Direction", controller->getScreen()->getName());
+    EXPECT_STREQ("Cutoff Direction", display->line1);
+    EXPECT_STREQ("< 3.1V or > 3.1V", display->line2);
+    EXPECT_EQ(1, display->cursorRow);
+    EXPECT_EQ(0, display->cursorCol);
+}
+
+TEST_F(ControllerTest, SavingCutoffDirection) {
+    controller->setScreen(controller->getCutoffDirectionScreen());
+    rotary->setPosition(1);
+    controller->tick(1111);
+    EXPECT_EQ(10, display->cursorCol);
+
+    rotary->setClicked(true);
+    controller->tick(2222);
+
+    EXPECT_STREQ("Home", controller->getScreen()->getName());
+    EXPECT_EQ('>', config->cutoffDirection);
+    EXPECT_EQ(true, config->saved);
+}
+
+TEST_F(ControllerTest, SelectingLoadPosVoltageInterference) {
+    controller->setScreen(controller->getMainMenu());
+    rotary->setPosition(1);
+    controller->tick(1111);
+    rotary->setPosition(2);
+    controller->tick(2222);
+    rotary->setClicked(true);
+    controller->tick(3333);
+
+    EXPECT_STREQ("Adjust +V Intrf", controller->getScreen()->getName());
+    EXPECT_STREQ("Adjust +V Intrf ", display->line1);
+    EXPECT_STREQ("-> 0.0 (was 0.0)", display->line2);
+    EXPECT_EQ(1, display->cursorRow);
+    EXPECT_EQ(5, display->cursorCol);
+}
+
+TEST_F(ControllerTest, SavingLoadPosVoltageInterference) {
+    controller->setScreen(controller->getAdjustPInterferenceScreen());
+    rotary->setPosition(-12);
+    controller->tick(1111);
+    EXPECT_STREQ("->-1.2 (was 0.0)", display->line2);
+
+    rotary->setClicked(true);
+    controller->tick(2222);
+
+    EXPECT_STREQ("Home", controller->getScreen()->getName());
+    EXPECT_NEAR(-1.2, config->pVoltageInterference, 0.01);
+    EXPECT_NEAR(-1.2, loadPositive->getInterferenceAdjustment(), 0.01);
+    EXPECT_EQ(true, config->saved);
+}
+
+TEST_F(ControllerTest, SelectingLoadNegVoltageInterference) {
+    controller->setScreen(controller->getMainMenu());
+    rotary->setPosition(1);
+    controller->tick(1111);
+    rotary->setPosition(2);
+    controller->tick(2222);
+    rotary->setPosition(3);
+    controller->tick(3333);
+    rotary->setClicked(true);
+    controller->tick(4444);
+
+    EXPECT_STREQ("Adjust -V Intrf", controller->getScreen()->getName());
+    EXPECT_STREQ("Adjust -V Intrf ", display->line1);
+    EXPECT_STREQ("-> 0.0 (was 0.0)", display->line2);
+    EXPECT_EQ(1, display->cursorRow);
+    EXPECT_EQ(5, display->cursorCol);
+}
+
+TEST_F(ControllerTest, SavingLoadNegVoltageInterference) {
+    controller->setScreen(controller->getAdjustNInterferenceScreen());
+    rotary->setPosition(-6);
+    controller->tick(1111);
+    EXPECT_STREQ("->-0.6 (was 0.0)", display->line2);
+
+    rotary->setClicked(true);
+    controller->tick(2222);
+
+    EXPECT_STREQ("Home", controller->getScreen()->getName());
+    EXPECT_NEAR(-0.6, config->nVoltageInterference, 0.01);
+    EXPECT_NEAR(-0.6, loadNegative->getInterferenceAdjustment(), 0.01);
     EXPECT_EQ(true, config->saved);
 }

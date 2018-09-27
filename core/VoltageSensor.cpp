@@ -4,10 +4,10 @@
 
 #define AnalogToVoltMultiplier 0.004887585532747;
 
-VoltageSensor::VoltageSensor(Hardware *hardware, uint8_t pin, double inteferenceAdjustment) {
+VoltageSensor::VoltageSensor(Hardware *hardware, uint8_t pin) {
     this->hardware = hardware;
     this->pin = pin;
-    this->interferenceAdjustment = inteferenceAdjustment;
+    this->interferenceAdjustment = 0.0;
 }
 
 Hardware *VoltageSensor::getHardware() {
@@ -24,10 +24,10 @@ double VoltageSensor::readVoltage() {
     return voltage + interferenceAdjustment;
 }
 
-void VoltageSensor::setInterferenceAdjustment(double error) {
+void VoltageSensor::setInterferenceAdjustment(float error) {
     interferenceAdjustment = error;
 }
 
-double VoltageSensor::getInterferenceAdjustment() {
+float VoltageSensor::getInterferenceAdjustment() {
     return interferenceAdjustment;
 }
