@@ -23,8 +23,11 @@ public:
     void handleClick();
     bool wasClicked();
     void setPosition(int position);
-
     void setClicked(bool b);
+
+    void setMinClickSeparation(unsigned int minClickSeparation);
+
+    unsigned int getMinClickSeparation() const;
 
 private:
 
@@ -37,8 +40,11 @@ private:
     volatile bool clicked;
     int debounceDelay;
     unsigned long lastEventTime;
+    unsigned int minClickSeparation;
+    unsigned long lastClickTime;
 
-    bool notBounced();
+    bool notBounced(unsigned long now);
+
 };
 
 

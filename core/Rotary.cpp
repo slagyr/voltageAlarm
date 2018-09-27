@@ -11,6 +11,8 @@ Rotary::Rotary(Hardware *hardware, uint8_t sw, uint8_t dt, uint8_t clk) {
     updated = true;
     debounceDelay = 50;
     lastEventTime = 0;
+    lastClickTime = 0;
+    minClickSeparation = 1000;
 }
 
 void Rotary::setup() const {
@@ -50,7 +52,7 @@ void Rotary::rest() {
 }
 
 void Rotary::handleRotation() {
-    if (notBounced()) {
+    if (notBounced(hardware->getMillis())) {
         int clkValue = hardware->readDigitalPin(clk);
         int dtValue = hardware->readDigitalPin(dt);
         position += clkValue == dtValue ? 1 : - 1;
@@ -66,8 +68,7 @@ void Rotary::setDebouceDelay(int delay) {
     debounceDelay = delay;
 }
 
-bool Rotary::notBounced() {
-    unsigned long now = hardware->getMillis();
+bool Rotary::notBounced(unsigned long now) {
     if (now > lastEventTime + debounceDelay) {
         lastEventTime = now;
         return true;
@@ -76,9 +77,13 @@ bool Rotary::notBounced() {
 }
 
 void Rotary::handleClick() {
-    if (notBounced()) {
-        clicked = true;
-        updated = true;
+    unsigned long now = hardware->getMillis();
+    if (notBounced(now)) {
+        if(now > lastClickTime + minClickSeparation) {
+            clicked = true;
+            updated = true;
+            lastClickTime = now;
+        }
     }
 }
 
@@ -94,4 +99,12 @@ void Rotary::setPosition(int position) {
 void Rotary::setClicked(bool b) {
     clicked = b;
     updated = true;
+}
+
+unsigned int Rotary::getMinClickSeparation() const {
+    return minClickSeparation;
+}
+
+void Rotary::setMinClickSeparation(unsigned int minClickSeparation) {
+    Rotary::minClickSeparation = minClickSeparation;
 }

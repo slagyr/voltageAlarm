@@ -86,7 +86,7 @@ TEST_F(RotaryTest, DebouncingWillIngoreRapidRotations) {
 }
 
 TEST_F(RotaryTest, HandlesClick) {
-    hardware->millisReads.push(123);
+    hardware->millisReads.push(2001);
 
     rotary->handleClick();
 
@@ -104,3 +104,20 @@ TEST_F(RotaryTest, SettingPosition) {
     EXPECT_EQ(10, rotary->getPosition());
     EXPECT_EQ(true, rotary->hasUpdate());
 }
+
+TEST_F(RotaryTest, MinClickSeparation) {
+    rotary->setMinClickSeparation(2000);
+    hardware->millisReads.push(2001);
+    rotary->handleClick();
+    EXPECT_EQ(true, rotary->wasClicked());
+    rotary->rest();
+
+    hardware->millisReads.push(3001);
+    rotary->handleClick();
+    EXPECT_EQ(false, rotary->wasClicked());
+
+    hardware->millisReads.push(4002);
+    rotary->handleClick();
+    EXPECT_EQ(true, rotary->wasClicked());
+}
+

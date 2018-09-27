@@ -101,7 +101,7 @@ void loop() {
 
 //    playPassive();
 
-    handleRotary();
+//    handleRotary();
 }
 
 void handleRotary() {

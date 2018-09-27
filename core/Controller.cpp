@@ -60,7 +60,6 @@ void Controller::tick(unsigned long millis) {
         screen->update();
         rotary->rest();
     } else if (millis - lastUpdate > IdleUpdateInterval) {
-        hardware->println("idle update");
         lastUpdate = millis;
         screen->update();
     }
@@ -194,25 +193,19 @@ void MainMenu::enter() {
 }
 
 void MainMenu::update() {
-    controller->getHardware()->println("MainMenu::update");
     Rotary *rotary = controller->getRotary();
     if (rotary->hasUpdate()) {
         if (rotary->wasClicked()) {
             controller->setScreen(screens[selectedIndex]);
         } else {
-
-            controller->getHardware()->println("MainMenu::update 1");
             int position = rotary->getPosition();
             int top;
             if (position > lastRotaryPosition) {
-
-                controller->getHardware()->println("MainMenu::update 2");
                 scrollingDown = true;
                 selectedIndex += selectedIndex == 3 ? 0 : 1;
                 top = selectedIndex - 1;
                 updateDisplay(top);
             } else if (position < lastRotaryPosition) {
-                controller->getHardware()->println("MainMenu::update3");
                 scrollingDown = false;
                 selectedIndex += selectedIndex == 0 ? 0 : -1;
                 top = selectedIndex;
