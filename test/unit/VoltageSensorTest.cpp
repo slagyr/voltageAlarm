@@ -45,3 +45,13 @@ TEST_F(VoltageSensorTest, WithInterferenceAdjustment) {
     hardware->analogReads[7].push(512);
     EXPECT_NEAR(1.9, sensor->readVoltage(), 0.01);
 }
+
+TEST_F(VoltageSensorTest, LastReading) {
+    hardware->analogReads[7].push(512);
+    sensor->readVoltage();
+    EXPECT_NEAR(2.5, sensor->getLastReading(), 0.01);
+
+    hardware->analogReads[7].push(1023);
+    sensor->readVoltage();
+    EXPECT_NEAR(5.0, sensor->getLastReading(), 0.01);
+}

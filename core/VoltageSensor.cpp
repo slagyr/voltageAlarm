@@ -21,7 +21,8 @@ uint8_t VoltageSensor::getPin() {
 float VoltageSensor::readVoltage() {
     int analogValue = hardware->readAnalogPin(pin);
     float voltage = analogValue * AnalogToVoltMultiplier;
-    return voltage + interferenceAdjustment;
+    lastReading = voltage + interferenceAdjustment;
+    return lastReading;
 }
 
 void VoltageSensor::setInterferenceAdjustment(float error) {
@@ -30,4 +31,8 @@ void VoltageSensor::setInterferenceAdjustment(float error) {
 
 float VoltageSensor::getInterferenceAdjustment() {
     return interferenceAdjustment;
+}
+
+float VoltageSensor::getLastReading() {
+    return lastReading;
 }

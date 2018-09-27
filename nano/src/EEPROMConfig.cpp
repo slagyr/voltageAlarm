@@ -3,13 +3,14 @@
 #include "EEPROM.h"
 
 #define VA_Address 36
-#define VA_MAGIC_NUMBER 43
+#define VA_MAGIC_NUMBER 44
 
 struct TransferData {
     float cutoffVoltage;
     char cutoffDirection;
     float pVoltageInterference;
     float nVoltageInterference;
+    float warningBuffer;
 };
 
 void EEPROMConfig::save() {
@@ -18,6 +19,7 @@ void EEPROMConfig::save() {
     data.cutoffDirection = cutoffDirection;
     data.pVoltageInterference = pVoltageInterference;
     data.nVoltageInterference = nVoltageInterference;
+    data.warningBuffer = warningBuffer;
 
     EEPROM.write(VA_Address, VA_MAGIC_NUMBER);
     EEPROM.put(VA_Address + 1, data);
@@ -32,6 +34,7 @@ bool EEPROMConfig::load() {
         cutoffDirection = data.cutoffDirection;
         pVoltageInterference = data.pVoltageInterference;
         nVoltageInterference = data.nVoltageInterference;
+        warningBuffer = data.warningBuffer;
         return true;
     } else
         return false;

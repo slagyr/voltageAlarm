@@ -20,9 +20,8 @@ Music *alarm;
 VoltageSensor *loadPositiveSensor;
 VoltageSensor *loadNagativeSensor;
 Config *config;
+Switch *load;
 Controller *controller;
-
-void handleRotary();
 
 void rotaryRotated() { rotary->handleRotation(); }
 
@@ -52,26 +51,16 @@ void setup() {
     loadPositiveSensor = new VoltageSensor(hardware, 0);
     loadNagativeSensor = new VoltageSensor(hardware, 3);
     config = new EEPROMConfig();
-    controller = new Controller(hardware, loadPositiveSensor, loadNagativeSensor, display, rotary, config);
+    load = new Switch(hardware, 6);
+    controller = new Controller(hardware, loadPositiveSensor, loadNagativeSensor, display, rotary, config, alarm, warning, load);
 
-    controller->setup();
-//    pinMode(FETPin, OUTPUT);
-
-//    rotary->setup();
-    attachInterrupt(digitalPinToInterrupt(rotary->getSW()), rotaryClicked, FALLING);
-    attachInterrupt(digitalPinToInterrupt(rotary->getCLK()), rotaryRotated, FALLING);
-
-    warning->setup();
     hereComesTheSun(warning);
-    alarm->setup();
     anotherOneBitesTheDust(alarm);
 
-//    lcd->print("Hello, World!");
-//    lcd->cursor();
-//    lcd->blink();
-//    Serial.println("Loading config");
-    config->load();
-//    Serial.println("done loading config");
+    controller->setup();
+
+    attachInterrupt(digitalPinToInterrupt(rotary->getSW()), rotaryClicked, FALLING);
+    attachInterrupt(digitalPinToInterrupt(rotary->getCLK()), rotaryRotated, FALLING);
 
     Serial.print("mem: ");
     Serial.println(availableMemory());
@@ -80,36 +69,4 @@ void setup() {
 void loop() {
 //    Serial.println(millis());
     controller->tick(millis());
-//    alarm->play();
-
-//    digitalWrite(FETPin, HIGH);
-
-//    vIn = analogRead(Vpin);
-//    Serial.println(vIn);
-//    delay(500);
-
-//    digitalWrite(FETPin, LOW);
-//    delay(500);
-
-//    warning.play();
-//    alarm->play();
-
-//    lcd.setCursor(0, 1);
-//    lcd.print(millis() / 1000);
-//    lcd.setCursor(0, 1);
-
-//    playPassive();
-
-//    handleRotary();
-}
-
-void handleRotary() {
-    if (rotary->hasUpdate()) {
-//        if (rotary->wasClicked())
-//            rotary->setPosition(0);
-//        rotary->rest();
-
-        Serial.print("rotaryPosition: ");
-        Serial.println(rotary->getPosition());
-    }
 }

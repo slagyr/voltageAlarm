@@ -1,3 +1,6 @@
+#ifndef MOCKCONFIG_H
+#define MOCKCONFIG_H
+
 #include "Config.h"
 
 class MockConfig : public Config {
@@ -13,3 +16,5 @@ public:
     bool saved;
     bool loadsOk;
 };
+
+#endif

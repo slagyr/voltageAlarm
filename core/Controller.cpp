@@ -3,6 +3,7 @@
 #ifndef ARDUINO_H
 
 #include "stdio.h"
+#include "Switch.h"
 
 #endif
 
@@ -11,13 +12,19 @@ Controller::Controller(Hardware *hardware,
                        VoltageSensor *loadNegative,
                        Display *display,
                        Rotary *rotary,
-                       Config *config) {
+                       Config *config,
+                       Music *alarm,
+                       Music *warning,
+                       Switch *load) {
     this->hardware = hardware;
     this->loadPositive = loadPositive;
     this->loadNegative = loadNegative;
     this->display = display;
     this->rotary = rotary;
     this->config = config;
+    this->alarm = alarm;
+    this->warning = warning;
+    this->loadSwitch = load;
     lastUserEventTime = 0;
 
     splash = new Splash(this);
@@ -27,10 +34,16 @@ Controller::Controller(Hardware *hardware,
     cutoffDirectionScreen = new CutoffDirectionScreen(this);
     adjustPInterferenceScreen = new AdjustPInterefenceScreen(this);
     adjustNInterferenceScreen = new AdjustNInterefenceScreen(this);
+    warningBufferScreen = new WarningBufferScreen(this);
 }
 
 void Controller::setup() {
     rotary->setup();
+    loadSwitch->setup();
+    warning->setup();
+    alarm->setup();
+
+    config->load();
 
     loadPositive->setInterferenceAdjustment(config->pVoltageInterference);
     loadNegative->setInterferenceAdjustment(config->nVoltageInterference);
@@ -52,7 +65,6 @@ Display *Controller::getDisplay() {
 }
 
 void Controller::tick(unsigned long millis) {
-//    hardware->println("Controller::tick");
     if (millis > lastUserEventTime + screen->getIdleTimeout()) {
         setScreen(getHomeScreen());
         lastUserEventTime = millis;
@@ -63,6 +75,8 @@ void Controller::tick(unsigned long millis) {
         screen->update();
         rotary->rest();
     } else if (millis - lastUpdate > IdleUpdateInterval) {
+        loadPositive->readVoltage();
+        loadNegative->readVoltage();
         lastUpdate = millis;
         screen->update();
     }
@@ -118,6 +132,22 @@ Screen *Controller::getAdjustPInterferenceScreen() const {
 
 Screen *Controller::getAdjustNInterferenceScreen() const {
     return adjustNInterferenceScreen;
+}
+
+Music *Controller::getAlarm() const {
+    return alarm;
+}
+
+Music *Controller::getWarning() const {
+    return warning;
+}
+
+Screen *Controller::getWarningBufferScreen() const {
+    return warningBufferScreen;
+}
+
+Switch *Controller::getLoadSwitch() const {
+    return loadSwitch;
 }
 
 Screen::Screen(Controller *controller) {
@@ -182,8 +212,8 @@ void HomeScreen::update() {
 }
 
 void HomeScreen::updateInfo(bool force) {
-    float pVolts = controller->getLoadPositiveSensor()->readVoltage();
-    float nVolts = controller->getLoadNegativeSensor()->readVoltage();
+    float pVolts = controller->getLoadPositiveSensor()->getLastReading();
+    float nVolts = controller->getLoadNegativeSensor()->getLastReading();
     bool pVoltChanged = !fEq(lastPVolts, pVolts);
     bool nVoltChanged = !fEq(lastNVolts, nVolts);
 
@@ -199,7 +229,7 @@ void HomeScreen::updateInfo(bool force) {
 
         sprintf(line1, "Voltage: %i.%i %i.%i",
                 ones(pVolts), tenths(pVolts), ones(nVolts), tenths(nVolts));
-        sprintf(line2, "Cutoff: %c %i.%i   ", direction, ones(cVolts), tenths(cVolts));
+        sprintf(line2, "Cutoff: %c%i.%i   ", direction, ones(cVolts), tenths(cVolts));
 
         controller->getDisplay()->showLines(line1, line2);
     }
@@ -227,7 +257,7 @@ void MainMenu::update() {
             int top;
             if (position > lastRotaryPosition) {
                 scrollingDown = true;
-                selectedIndex += selectedIndex == 3 ? 0 : 1;
+                selectedIndex += selectedIndex == 4 ? 0 : 1;
                 top = selectedIndex - 1;
                 updateDisplay(top);
             } else if (position < lastRotaryPosition) {
@@ -247,6 +277,7 @@ void MainMenu::updateDisplay(int top) const {
     display->selectLine(scrollingDown ? 1 : 0);
 }
 
+
 // switch/case is used here instead of array to avoid consuming RAM
 // This uses program space instead
 const char *MainMenu::item(int i) const {
@@ -259,6 +290,8 @@ const char *MainMenu::item(int i) const {
             return "3 Adjust +V Intf";
         case 3 :
             return "4 Adjust -V Intf";
+        case 4 :
+            return "5 Set Warn Buff ";
         default :
             return "WTF?";
     }
@@ -274,6 +307,8 @@ Screen *MainMenu::screen(int i) const {
             return controller->getAdjustPInterferenceScreen();
         case 3 :
             return controller->getAdjustNInterferenceScreen();
+        case 4 :
+            return controller->getWarningBufferScreen();
         default :
             return controller->getHomeScreen();
     }
@@ -419,4 +454,22 @@ float AdjustNInterefenceScreen::maxVoltage() const { return 5.0; }
 void AdjustNInterefenceScreen::updateStoredValue(float value) const {
     controller->getLoadNegativeSensor()->setInterferenceAdjustment(value);
     controller->getConfig()->nVoltageInterference = value;
+}
+
+WarningBufferScreen::WarningBufferScreen(Controller *controller) : VotageUpdateScreen(controller) {}
+
+const char *WarningBufferScreen::getName() { return "Warning Buffer"; }
+
+float WarningBufferScreen::storedValue() const {
+    return controller->getConfig()->warningBuffer;
+}
+
+const char *WarningBufferScreen::title() { return "Warning Buffer  "; }
+
+float WarningBufferScreen::minVoltage() const { return 0.0f; }
+
+float WarningBufferScreen::maxVoltage() const { return 5.0; }
+
+void WarningBufferScreen::updateStoredValue(float value) const {
+    controller->getConfig()->warningBuffer = value;
 }

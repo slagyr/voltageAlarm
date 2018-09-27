@@ -9,6 +9,7 @@ public:
     }
 
     float readVoltage() override {
+        lastReading = volts;
         return volts;
     }
 

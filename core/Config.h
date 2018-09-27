@@ -12,6 +12,7 @@ public:
     char cutoffDirection = '<';
     float pVoltageInterference = 0.0;
     float nVoltageInterference = 0.0;
+    float warningBuffer = 0.0;
 };
 
 

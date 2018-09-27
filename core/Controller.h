@@ -7,6 +7,8 @@
 #include "Display.h"
 #include "Rotary.h"
 #include "Config.h"
+#include "Music.h"
+#include "Switch.h"
 
 // Will prevent screen from updating more than 5 times per second
 #define IdleUpdateInterval 200
@@ -73,9 +75,12 @@ public:
     void update() override;
 
     void updateDisplay(int top) const;
+
 private:
     const char *item(int i) const;
-    Screen * screen(int i) const;
+
+    Screen *screen(int i) const;
+
     int selectedIndex;
     bool scrollingDown;
     int lastRotaryPosition;
@@ -176,11 +181,35 @@ public:
     void updateStoredValue(float value) const override;
 };
 
+class WarningBufferScreen : public VotageUpdateScreen {
+public:
+    explicit WarningBufferScreen(Controller *controller);
+
+    const char *getName() override;
+
+    float storedValue() const override;
+
+    const char *title() override;
+
+    float minVoltage() const override;
+
+    float maxVoltage() const override;
+
+    void updateStoredValue(float value) const override;
+};
+
 class Controller {
 
 public:
-    Controller(Hardware *hardware, VoltageSensor *loadPositive, VoltageSensor *loadNegative, Display *display,
-               Rotary *rotary, Config *config);
+    Controller(Hardware *hardware,
+               VoltageSensor *loadPositive,
+               VoltageSensor *loadNegative,
+               Display *display,
+               Rotary *rotary,
+               Config *config,
+               Music *alarm,
+               Music *warning,
+               Switch *load);
 
     void setup();
 
@@ -206,6 +235,12 @@ public:
 
     VoltageSensor *getLoadNegative() const;
 
+    Music *getAlarm() const;
+
+    Music *getWarning() const;
+
+    Switch *getLoadSwitch() const;
+
     Screen *getHomeScreen();
 
     Screen *getMainMenu();
@@ -218,6 +253,8 @@ public:
 
     Screen *getAdjustNInterferenceScreen() const;
 
+    Screen *getWarningBufferScreen() const;
+
 private:
     Hardware *hardware;
     VoltageSensor *loadPositive;
@@ -225,6 +262,9 @@ private:
     Display *display;
     Rotary *rotary;
     Config *config;
+    Music *alarm;
+    Music *warning;
+    Switch *loadSwitch;
 
     Screen *screen;
     Screen *splash;
@@ -234,6 +274,7 @@ private:
     Screen *cutoffDirectionScreen;
     Screen *adjustPInterferenceScreen;
     Screen *adjustNInterferenceScreen;
+    Screen *warningBufferScreen;
 
     unsigned long lastUserEventTime = 0;
 

@@ -26,7 +26,8 @@ public:
     unsigned short getNoteDuration(unsigned short index);
     unsigned short getPauseBetweenNotes();
     void setPauseBetweenNotes(unsigned short duration);
-    void play();
+
+    virtual void play();
     bool isLoop();
     void setLoop(bool b);
     unsigned short getLoopDelay();
