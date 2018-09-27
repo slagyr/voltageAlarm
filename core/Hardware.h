@@ -20,6 +20,8 @@ public:
     virtual void sleep(unsigned long duration) = 0;
 
     void printValue(char* label, int value);
+    void println(const char *value);
+    void println(int value);
 };
 
 

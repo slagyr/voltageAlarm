@@ -53,7 +53,7 @@ public:
     double lastPVolts = -99.9;
     double lastNVolts = -99.9;
 
-    void updateInfo();
+    void updateInfo(bool force);
 };
 
 class MainMenu : public Screen {
@@ -68,8 +68,11 @@ public:
 
     void updateDisplay(int top) const;
 
-    const char *items[4];
-    Screen *screens[4];
+    const char *items[4] = {"1 Set Cutoff V  ",
+                            "2 Set Cutoff Dir",
+                            "3 Adjust +V Intf",
+                            "4 Adjust -V Intf"};
+    Screen *screens[4] = {nullptr, nullptr, nullptr, nullptr};
     int selectedIndex;
     bool scrollingDown;
     int lastRotaryPosition;
@@ -96,6 +99,8 @@ class Controller {
 public:
     Controller(Hardware *hardware, VoltageSensor *loadPositive, VoltageSensor *loadNegative, Display *display,
                    Rotary *rotary, Config *config);
+
+    void setup();
 
     Hardware *getHardware() const;
 

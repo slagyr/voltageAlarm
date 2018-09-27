@@ -22,12 +22,12 @@ public:
         strcpy(line2, line);
     }
 
-    void selectLine(int line) override {
+    void selectLine(uint8_t line) override {
         selectedLine = line;
         showCursorAt(line, 0);
     }
 
-    void showCursorAt(int row, int col) override {
+    void showCursorAt(uint8_t row, uint8_t col) override {
         cursorOn = true;
         cursorRow = row;
         cursorCol = col;

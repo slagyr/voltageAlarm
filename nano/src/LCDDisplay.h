@@ -7,9 +7,26 @@
 class LCDDisplay : public Display {
 public:
     LCDDisplay(LiquidCrystal *lcd);
-    void show(const char *line1, const char *line2) override;
+    void showLines(const char *line1, const char *line2) override;
 
+    void showLine1(const char *line) override;
+
+    void showLine2(const char *line) override;
+
+    void selectLine(uint8_t line) override;
+
+    void showCursorAt(uint8_t row, uint8_t col) override;
+
+    void hideCursor() override;
+
+    void updateCursor() const;
+
+private:
     LiquidCrystal *lcd;
+    bool cursorOn;
+    uint8_t cursorRow;
+    uint8_t cursorCol;
+
 };
 
 

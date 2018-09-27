@@ -6,8 +6,12 @@
 
 #endif
 
-Controller::Controller(Hardware *hardware, VoltageSensor *loadPositive, VoltageSensor *loadNegative, Display *display,
-                       Rotary *rotary, Config *config) {
+Controller::Controller(Hardware *hardware,
+                       VoltageSensor *loadPositive,
+                       VoltageSensor *loadNegative,
+                       Display *display,
+                       Rotary *rotary,
+                       Config *config) {
     this->hardware = hardware;
     this->loadPositive = loadPositive;
     this->loadNegative = loadNegative;
@@ -20,7 +24,10 @@ Controller::Controller(Hardware *hardware, VoltageSensor *loadPositive, VoltageS
     homeScreen = new HomeScreen(this);
     mainMenu = new MainMenu(this);
     cutoffVoltageScreen = new CutoffVoltageScreen(this);
+}
 
+void Controller::setup() {
+    rotary->setup();
     setScreen(splash);
 }
 
@@ -29,7 +36,9 @@ Screen *Controller::getScreen() {
 }
 
 void Controller::setScreen(Screen *screen) {
+    hardware->println(screen->getName());
     this->screen = screen;
+    hardware->println("calling screen->enter()");
     screen->enter();
 }
 
@@ -38,15 +47,20 @@ Display *Controller::getDisplay() {
 }
 
 void Controller::tick(unsigned long millis) {
+//    hardware->println("Controller::tick");
     if (millis > lastUserEventTime + screen->getIdleTimeout()) {
+        hardware->println("screen timeout");
         setScreen(getHomeScreen());
+        lastUserEventTime = millis;
         lastUpdate = millis;
     } else if (rotary->hasUpdate()) {
+        hardware->println("rotary hasUpdate");
         lastUserEventTime = millis;
         lastUpdate = millis;
         screen->update();
         rotary->rest();
     } else if (millis - lastUpdate > IdleUpdateInterval) {
+        hardware->println("idle update");
         lastUpdate = millis;
         screen->update();
     }
@@ -97,9 +111,13 @@ Screen::Screen(Controller *controller, const char *name) {
     this->name = name;
 }
 
-Splash::Splash(Controller *controller) : Screen(controller, "Splash") {}
+Splash::Splash(Controller *controller) : Screen(controller, "Splash") {
+    timeout = 1000;
+}
 
 void Splash::enter() {
+    controller->getDisplay()->hideCursor();
+    controller->getHardware()->println("Splash::enter");
     controller->getDisplay()->showLines("Volt Alarm v1.0", "Micah Martin");
 }
 
@@ -121,27 +139,28 @@ bool dEq(double d1, double d2) {
 }
 
 HomeScreen::HomeScreen(Controller *controller) : Screen(controller, "Home") {
-    timeout = 4294967295;
+    timeout = 60000;
 }
 
 void HomeScreen::enter() {
-    updateInfo();
+    controller->getDisplay()->hideCursor();
+    updateInfo(true);
 }
 
 void HomeScreen::update() {
     if (controller->getRotary()->wasClicked())
         controller->setScreen(controller->getMainMenu());
     else
-        updateInfo();
+        updateInfo(false);
 }
 
-void HomeScreen::updateInfo() {
+void HomeScreen::updateInfo(bool force) {
     double pVolts = controller->getLoadPositiveSensor()->readVoltage();
     double nVolts = controller->getLoadNegativeSensor()->readVoltage();
     bool pVoltChanged = !dEq(lastPVolts, pVolts);
     bool nVoltChanged = !dEq(lastNVolts, nVolts);
 
-    if (pVoltChanged || nVoltChanged) {
+    if (force || pVoltChanged || nVoltChanged) {
         lastPVolts = pVolts;
         lastNVolts = nVolts;
 
@@ -160,10 +179,6 @@ void HomeScreen::updateInfo() {
 }
 
 MainMenu::MainMenu(Controller *controller) : Screen(controller, "Main Menu") {
-    items[0] = "1 Set Cutoff V  ";
-    items[1] = "2 Set Cutoff Dir";
-    items[2] = "3 Adjust +V Intf";
-    items[3] = "4 Adjust -V Intf";
 }
 
 
@@ -179,19 +194,25 @@ void MainMenu::enter() {
 }
 
 void MainMenu::update() {
+    controller->getHardware()->println("MainMenu::update");
     Rotary *rotary = controller->getRotary();
     if (rotary->hasUpdate()) {
         if (rotary->wasClicked()) {
             controller->setScreen(screens[selectedIndex]);
         } else {
+
+            controller->getHardware()->println("MainMenu::update 1");
             int position = rotary->getPosition();
             int top;
             if (position > lastRotaryPosition) {
+
+                controller->getHardware()->println("MainMenu::update 2");
                 scrollingDown = true;
                 selectedIndex += selectedIndex == 3 ? 0 : 1;
                 top = selectedIndex - 1;
                 updateDisplay(top);
             } else if (position < lastRotaryPosition) {
+                controller->getHardware()->println("MainMenu::update3");
                 scrollingDown = false;
                 selectedIndex += selectedIndex == 0 ? 0 : -1;
                 top = selectedIndex;

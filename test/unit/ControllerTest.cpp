@@ -25,6 +25,7 @@ protected:
         rotary = new Rotary(hardware, 1, 2, 3);
         config = new MockConfig();
         controller = new Controller(hardware, loadPositive, loadNegative, display, rotary, config);
+        controller->setup();
     }
 
     virtual void TearDown() {
@@ -48,7 +49,7 @@ TEST_F(ControllerTest, SplashScreen) {
     controller->tick(1000);
     EXPECT_STREQ("Volt Alarm v1.0", display->line1);
     EXPECT_STREQ("Micah Martin", display->line2);
-    EXPECT_EQ(5000, controller->getScreen()->getIdleTimeout());
+    EXPECT_EQ(1000, controller->getScreen()->getIdleTimeout());
 }
 
 TEST_F(ControllerTest, SplashToHomeAfterTimeout) {

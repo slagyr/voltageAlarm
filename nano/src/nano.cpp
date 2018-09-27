@@ -7,7 +7,7 @@
 #include "VoltageSensor.h"
 #include "Controller.h"
 #include "LCDDisplay.h"
-#include "EEPROM.h"
+#include "EEPROMConfig.h"
 
 #define FETPin 6
 
@@ -19,6 +19,7 @@ Music *warning;
 Music *alarm;
 VoltageSensor *loadPositiveSensor;
 VoltageSensor *loadNagativeSensor;
+Config *config;
 Controller *controller;
 
 void handleRotary();
@@ -27,8 +28,22 @@ void rotaryRotated() { rotary->handleRotation(); }
 
 void rotaryClicked() { rotary->handleClick(); }
 
+int availableMemory() {
+    int size = 2048; // Use 2048 with ATmega328
+    byte *buf;
+
+    while ((buf = (byte *) malloc(--size)) == NULL)
+        ;
+
+    free(buf);
+
+    return size;
+}
+
 void setup() {
     Serial.begin(9600);
+
+    Serial.println("REBOOT!");
 
     hardware = new ArduinoHardware();
     rotary = new Rotary(hardware, 2, 4, 3);
@@ -38,28 +53,34 @@ void setup() {
     alarm = new Music(hardware, 5);
     loadPositiveSensor = new VoltageSensor(hardware, 0, -0.0);
     loadNagativeSensor = new VoltageSensor(hardware, 3, -0.0);
-    controller = new Controller(hardware, loadPositiveSensor, loadNagativeSensor, display);
+    config = new EEPROMConfig();
+    controller = new Controller(hardware, loadPositiveSensor, loadNagativeSensor, display, rotary, config);
 
-    pinMode(FETPin, OUTPUT);
+    controller->setup();
+//    pinMode(FETPin, OUTPUT);
 
-    rotary->setup();
+//    rotary->setup();
     attachInterrupt(digitalPinToInterrupt(rotary->getSW()), rotaryClicked, FALLING);
     attachInterrupt(digitalPinToInterrupt(rotary->getCLK()), rotaryRotated, FALLING);
 
-    warning->setup();
-    hereComesTheSun(warning);
-    alarm->setup();
-    anotherOneBitesTheDust(alarm);
+//    warning->setup();
+//    hereComesTheSun(warning);
+//    alarm->setup();
+//    anotherOneBitesTheDust(alarm);
 
-//    lcd.print("Hello, World!");
-//    lcd.cursor();
-//    lcd.blink();
-    Serial.println("Ending setup");
+    Serial.print("availableMemory(): ");
+    Serial.println(availableMemory());
 
-    EEPROM.read(0);
+//    lcd->print("Hello, World!");
+//    lcd->cursor();
+//    lcd->blink();
+//    Serial.println("Loading config");
+    Serial.println(config->load());
+//    Serial.println("done loading config");
 }
 
 void loop() {
+//    Serial.println(millis());
     controller->tick(millis());
 
 //    digitalWrite(FETPin, HIGH);
@@ -85,12 +106,11 @@ void loop() {
 
 void handleRotary() {
     if (rotary->hasUpdate()) {
-        if (rotary->wasClicked())
-            rotary->setPosition(0);
-        rotary->rest();
+//        if (rotary->wasClicked())
+//            rotary->setPosition(0);
+//        rotary->rest();
 
         Serial.print("rotaryPosition: ");
         Serial.println(rotary->getPosition());
     }
 }
-
