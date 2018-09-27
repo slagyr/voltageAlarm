@@ -92,7 +92,7 @@ TEST_F(ControllerTest, HomeScreenDisplay) {
     EXPECT_STREQ("Home", controller->getScreen()->getName());
 
     EXPECT_STREQ("Voltage: 4.2 3.5", display->line1);
-    EXPECT_STREQ("Cutoff: <2.5   ", display->line2);
+    EXPECT_STREQ("Cutoff: <2.5 MON", display->line2);
 }
 
 TEST_F(ControllerTest, EnteringMenu) {
@@ -170,12 +170,13 @@ TEST_F(ControllerTest, SelectingCutoffVItem) {
 
     EXPECT_STREQ("Cutoff Voltage", controller->getScreen()->getName());
     EXPECT_STREQ("Cutoff Voltage  ", display->line1);
-    EXPECT_STREQ("-> 3.1 (was 3.1)", display->line2);
+    EXPECT_STREQ("-> 2.5 (was 2.5)", display->line2);
     EXPECT_EQ(1, display->cursorRow);
     EXPECT_EQ(5, display->cursorCol);
 }
 
 TEST_F(ControllerTest, ChangingCutoffVoltageValue) {
+    config->cutoffVoltage = 3.1;
     controller->setScreen(controller->getCutoffVoltageScreen());
     EXPECT_STREQ("-> 3.1 (was 3.1)", display->line2);
 
@@ -209,13 +210,13 @@ TEST_F(ControllerTest, SavingCutoffVoltage) {
     rotary->setPosition(3);
     controller->tick(1000);
 
-    EXPECT_STREQ("-> 3.4 (was 3.1)", display->line2);
+    EXPECT_STREQ("-> 2.8 (was 2.5)", display->line2);
 
     rotary->setClicked(true);
     controller->tick(2000);
 
     EXPECT_STREQ("Home", controller->getScreen()->getName());
-    EXPECT_NEAR(3.4, config->cutoffVoltage, 0.01);
+    EXPECT_NEAR(2.8, config->cutoffVoltage, 0.01);
     EXPECT_EQ(true, config->saved);
 }
 
@@ -228,7 +229,7 @@ TEST_F(ControllerTest, SelectingCuttoffDirection) {
 
     EXPECT_STREQ("Cutoff Direction", controller->getScreen()->getName());
     EXPECT_STREQ("Cutoff Direction", display->line1);
-    EXPECT_STREQ("< 3.1V or > 3.1V", display->line2);
+    EXPECT_STREQ("< 2.5V or > 2.5V", display->line2);
     EXPECT_EQ(1, display->cursorRow);
     EXPECT_EQ(0, display->cursorCol);
 }
@@ -345,4 +346,101 @@ TEST_F(ControllerTest, ChangingWarningBuffer) {
     EXPECT_EQ(true, config->saved);
 }
 
+TEST_F(ControllerTest, StateIdleToMonitoring) {
+    loadPositive->volts = 0.0;
+    EXPECT_STREQ("IDL", controller->getState()->abrv());
+    controller->tick(1000);
+    EXPECT_STREQ("IDL", controller->getState()->abrv());
 
+    loadPositive->volts = 4.2;
+    controller->tick(2000);
+    EXPECT_STREQ("MON", controller->getState()->abrv());
+}
+
+TEST_F(ControllerTest, MonitorToWarn) {
+    config->warningBuffer = 0.2;
+    loadPositive->volts = 4.2;
+    controller->setState(controller->getMonitorState());
+    controller->tick(1000);
+    EXPECT_STREQ("MON", controller->getState()->abrv());
+    EXPECT_EQ(true, load->isOn());
+
+    loadPositive->volts = 2.7;
+    controller->tick(2000);
+    EXPECT_STREQ("WRN", controller->getState()->abrv());
+}
+
+TEST_F(ControllerTest, WarnToAlarm) {
+    config->warningBuffer = 0.2;
+    loadPositive->volts = 2.7;
+    controller->setState(controller->getWarnState());
+    controller->tick(1000);
+    EXPECT_STREQ("WRN", controller->getState()->abrv());
+    EXPECT_EQ(1, warning->timesPlayed);
+
+    loadPositive->volts = 2.5;
+    controller->tick(2000);
+    EXPECT_STREQ("ALM", controller->getState()->abrv());
+}
+
+TEST_F(ControllerTest, WarnBackToMon) {
+    config->warningBuffer = 0.2;
+    loadPositive->volts = 2.7;
+    controller->setState(controller->getWarnState());
+    controller->tick(1000);
+
+    loadPositive->volts = 2.8;
+    controller->tick(2000);
+    EXPECT_STREQ("WRN", controller->getState()->abrv());
+    EXPECT_EQ(2, warning->timesPlayed);
+
+    loadPositive->volts = 2.9;
+    controller->tick(3000);
+    EXPECT_STREQ("WRN", controller->getState()->abrv());
+    EXPECT_EQ(3, warning->timesPlayed);
+
+    loadPositive->volts = 3.0;
+    controller->tick(4000);
+    EXPECT_STREQ("MON", controller->getState()->abrv());
+}
+
+TEST_F(ControllerTest, AlarmBackToWarn) {
+    config->warningBuffer = 0.2;
+    loadPositive->volts = 2.5;
+    load->on();
+    controller->setState(controller->getAlarmState());
+    controller->tick(1000);
+    EXPECT_EQ(false, load->isOn());
+
+    loadPositive->volts = 2.6;
+    controller->tick(2000);
+    EXPECT_STREQ("ALM", controller->getState()->abrv());
+    EXPECT_EQ(2, alarm->timesPlayed);
+
+    loadPositive->volts = 2.7;
+    controller->tick(3000);
+    EXPECT_STREQ("ALM", controller->getState()->abrv());
+    EXPECT_EQ(3, alarm->timesPlayed);
+
+    loadPositive->volts = 3.0;
+    controller->tick(4000);
+    EXPECT_STREQ("WRN", controller->getState()->abrv());
+
+    controller->tick(5000);
+    EXPECT_EQ(true, load->isOn());
+}
+
+TEST_F(ControllerTest, AlarmToIdleByPress) {
+    config->warningBuffer = 0.2;
+    loadPositive->volts = 2.5;
+    load->on();
+    controller->setState(controller->getAlarmState());
+    controller->tick(1000);
+
+    rotary->setClicked(true);
+    controller->tick(2000);
+    EXPECT_STREQ("IDL", controller->getState()->abrv());
+
+    controller->tick(3000);
+    EXPECT_EQ(false, load->isOn());
+}

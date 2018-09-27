@@ -35,6 +35,11 @@ Controller::Controller(Hardware *hardware,
     adjustPInterferenceScreen = new AdjustPInterefenceScreen(this);
     adjustNInterferenceScreen = new AdjustNInterefenceScreen(this);
     warningBufferScreen = new WarningBufferScreen(this);
+
+    idleState = new IdleState(this);
+    monitorState = new MonitorState(this);
+    warnState = new WarnState(this);
+    alarmState = new AlarmState(this);
 }
 
 void Controller::setup() {
@@ -49,6 +54,7 @@ void Controller::setup() {
     loadNegative->setInterferenceAdjustment(config->nVoltageInterference);
 
     setScreen(splash);
+    setState(idleState);
 }
 
 Screen *Controller::getScreen() {
@@ -65,6 +71,12 @@ Display *Controller::getDisplay() {
 }
 
 void Controller::tick(unsigned long millis) {
+    if (millis > nextVoltReadTime) {
+        nextVoltReadTime += VOLT_READ_INTERVAL;
+        loadPositive->readVoltage();
+        loadNegative->readVoltage();
+        state->run(loadPositive->getLastReading());
+    }
     if (millis > lastUserEventTime + screen->getIdleTimeout()) {
         setScreen(getHomeScreen());
         lastUserEventTime = millis;
@@ -74,9 +86,7 @@ void Controller::tick(unsigned long millis) {
         lastUpdate = millis;
         screen->update();
         rotary->rest();
-    } else if (millis - lastUpdate > IdleUpdateInterval) {
-        loadPositive->readVoltage();
-        loadNegative->readVoltage();
+    } else if (millis - lastUpdate > IDLE_UPDATE_INTERVAL) {
         lastUpdate = millis;
         screen->update();
     }
@@ -148,6 +158,30 @@ Screen *Controller::getWarningBufferScreen() const {
 
 Switch *Controller::getLoadSwitch() const {
     return loadSwitch;
+}
+
+State *Controller::getState() const {
+    return state;
+}
+
+void Controller::setState(State *state) {
+    Controller::state = state;
+}
+
+State *Controller::getIdleState() const {
+    return idleState;
+}
+
+State *Controller::getMonitorState() const {
+    return monitorState;
+}
+
+State *Controller::getWarnState() const {
+    return warnState;
+}
+
+State *Controller::getAlarmState() const {
+    return alarmState;
 }
 
 Screen::Screen(Controller *controller) {
@@ -229,7 +263,8 @@ void HomeScreen::updateInfo(bool force) {
 
         sprintf(line1, "Voltage: %i.%i %i.%i",
                 ones(pVolts), tenths(pVolts), ones(nVolts), tenths(nVolts));
-        sprintf(line2, "Cutoff: %c%i.%i   ", direction, ones(cVolts), tenths(cVolts));
+        sprintf(line2, "Cutoff: %c%i.%i %s",
+                direction, ones(cVolts), tenths(cVolts), controller->getState()->abrv());
 
         controller->getDisplay()->showLines(line1, line2);
     }
@@ -472,4 +507,64 @@ float WarningBufferScreen::maxVoltage() const { return 5.0; }
 
 void WarningBufferScreen::updateStoredValue(float value) const {
     controller->getConfig()->warningBuffer = value;
+}
+
+State::State(Controller *controller) { this->controller = controller; }
+
+IdleState::IdleState(Controller *controller) : State(controller) {}
+
+const char *IdleState::abrv() { return "IDL"; }
+
+void IdleState::run(float v) {
+    if (controller->getLoadSwitch()->isOn())
+        controller->getLoadSwitch()->off();
+    float cutoff = controller->getConfig()->cutoffVoltage;
+    float buffer = controller->getConfig()->warningBuffer;
+    if (v > cutoff + buffer)
+        controller->setState(controller->getMonitorState());
+}
+
+MonitorState::MonitorState(Controller *controller) : State(controller) {}
+
+const char *MonitorState::abrv() { return "MON"; }
+
+void MonitorState::run(float v) {
+    if (!controller->getLoadSwitch()->isOn())
+        controller->getLoadSwitch()->on();
+    float cutoff = controller->getConfig()->cutoffVoltage;
+    float buffer = controller->getConfig()->warningBuffer;
+    if (v <= cutoff + buffer)
+        controller->setState(controller->getWarnState());
+}
+
+WarnState::WarnState(Controller *controller) : State(controller) {}
+
+const char *WarnState::abrv() { return "WRN"; }
+
+void WarnState::run(float v) {
+    if (!controller->getLoadSwitch()->isOn())
+        controller->getLoadSwitch()->on();
+    controller->getWarning()->play();
+    float cutoff = controller->getConfig()->cutoffVoltage;
+    float buffer = controller->getConfig()->warningBuffer;
+    if (v <= cutoff)
+        controller->setState(controller->getAlarmState());
+    else if (v > cutoff + buffer * 2)
+        controller->setState(controller->getMonitorState());
+}
+
+AlarmState::AlarmState(Controller *controller) : State(controller) {}
+
+const char *AlarmState::abrv() { return "ALM"; }
+
+void AlarmState::run(float v) {
+    if (controller->getLoadSwitch()->isOn())
+        controller->getLoadSwitch()->off();
+    controller->getAlarm()->play();
+    float cutoff = controller->getConfig()->cutoffVoltage;
+    float buffer = controller->getConfig()->warningBuffer;
+    if (v > cutoff + buffer)
+        controller->setState(controller->getWarnState());
+    else if(controller->getRotary()->wasClicked())
+        controller->setState(controller->getIdleState());
 }

@@ -11,7 +11,8 @@
 #include "Switch.h"
 
 // Will prevent screen from updating more than 5 times per second
-#define IdleUpdateInterval 200
+#define IDLE_UPDATE_INTERVAL 200
+#define VOLT_READ_INTERVAL 200
 
 class Controller;
 
@@ -198,6 +199,49 @@ public:
     void updateStoredValue(float value) const override;
 };
 
+class State {
+public:
+    State(Controller* controller);
+    virtual const char *abrv() = 0;
+
+    virtual void run(float v) = 0;
+
+protected:
+    Controller *controller;
+};
+
+class IdleState : public State {
+public:
+    explicit IdleState(Controller* controller);
+    const char *abrv() override;
+
+    void run(float v) override;
+};
+
+class MonitorState : public State {
+public:
+    explicit MonitorState(Controller* controller);
+    const char *abrv() override;
+
+    void run(float v) override;
+};
+
+class WarnState : public State {
+public:
+    explicit WarnState(Controller* controller);
+    const char *abrv() override;
+
+    void run(float v) override;
+};
+
+class AlarmState : public State {
+public:
+    explicit AlarmState(Controller* controller);
+    const char *abrv() override;
+
+    void run(float v) override;
+};
+
 class Controller {
 
 public:
@@ -255,6 +299,18 @@ public:
 
     Screen *getWarningBufferScreen() const;
 
+    State *getState() const;
+
+    void setState(State *state);
+
+    State *getIdleState() const;
+
+    State *getMonitorState() const;
+
+    State *getWarnState() const;
+
+    State *getAlarmState() const;
+
 private:
     Hardware *hardware;
     VoltageSensor *loadPositive;
@@ -276,9 +332,15 @@ private:
     Screen *adjustNInterferenceScreen;
     Screen *warningBufferScreen;
 
-    unsigned long lastUserEventTime = 0;
+    State *state;
+    State *idleState;
+    State *monitorState;
+    State *warnState;
+    State *alarmState;
 
+    unsigned long lastUserEventTime = 0;
     unsigned long lastUpdate = 0;
+    unsigned long nextVoltReadTime = 0;
 };
 
 
