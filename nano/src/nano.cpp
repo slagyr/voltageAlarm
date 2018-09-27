@@ -43,8 +43,6 @@ int availableMemory() {
 void setup() {
     Serial.begin(9600);
 
-    Serial.println("REBOOT!");
-
     hardware = new ArduinoHardware();
     rotary = new Rotary(hardware, 2, 4, 3);
     lcd = new LiquidCrystal(7, 8, 9, 10, 11, 12);
@@ -63,25 +61,26 @@ void setup() {
     attachInterrupt(digitalPinToInterrupt(rotary->getSW()), rotaryClicked, FALLING);
     attachInterrupt(digitalPinToInterrupt(rotary->getCLK()), rotaryRotated, FALLING);
 
-//    warning->setup();
-//    hereComesTheSun(warning);
-//    alarm->setup();
-//    anotherOneBitesTheDust(alarm);
-
-    Serial.print("availableMemory(): ");
-    Serial.println(availableMemory());
+    warning->setup();
+    hereComesTheSun(warning);
+    alarm->setup();
+    anotherOneBitesTheDust(alarm);
 
 //    lcd->print("Hello, World!");
 //    lcd->cursor();
 //    lcd->blink();
 //    Serial.println("Loading config");
-    Serial.println(config->load());
+    config->load();
 //    Serial.println("done loading config");
+
+    Serial.print("mem: ");
+    Serial.println(availableMemory());
 }
 
 void loop() {
 //    Serial.println(millis());
     controller->tick(millis());
+//    alarm->play();
 
 //    digitalWrite(FETPin, HIGH);
 

@@ -21,13 +21,10 @@ void EEPROMConfig::save() {
 
     EEPROM.write(VA_Address, VA_MAGIC_NUMBER);
     EEPROM.put(VA_Address + 1, data);
-    Serial.println("save");
 }
 
 bool EEPROMConfig::load() {
     uint8_t id = EEPROM.read(VA_Address);
-    Serial.print("id: ");
-    Serial.println(id);
     if (id == VA_MAGIC_NUMBER) { //  That's our cue
         struct TransferData data{};
         EEPROM.get(VA_Address + 1, data);

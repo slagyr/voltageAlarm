@@ -143,7 +143,8 @@ const char *Splash::getName() {
     return "Splash";
 }
 
-char sign(float d) {
+// compiler complains about name: sign
+char s1gn(float d) {
     return d < 0 ? '-' : ' ';
 }
 
@@ -219,10 +220,6 @@ void MainMenu::enter() {
     selectedIndex = 0;
     scrollingDown = false;
     lastRotaryPosition = 0;
-    screens[0] = controller->getCutoffVoltageScreen();
-    screens[1] = controller->getCutoffDirectionScreen();
-    screens[2] = controller->getAdjustPInterferenceScreen();
-    screens[3] = controller->getAdjustNInterferenceScreen();
     updateDisplay(0);
 }
 
@@ -230,7 +227,7 @@ void MainMenu::update() {
     Rotary *rotary = controller->getRotary();
     if (rotary->hasUpdate()) {
         if (rotary->wasClicked()) {
-            controller->setScreen(screens[selectedIndex]);
+            controller->setScreen(screen(selectedIndex));
         } else {
             int position = rotary->getPosition();
             int top;
@@ -252,8 +249,30 @@ void MainMenu::update() {
 
 void MainMenu::updateDisplay(int top) const {
     Display *display = controller->getDisplay();
-    display->showLines(items[top], items[top + 1]);
+    display->showLines(item(top), item(top + 1));
     display->selectLine(scrollingDown ? 1 : 0);
+}
+
+// switch/case is used here instead of array to avoid consuming RAM
+// This uses program space instead
+const char *MainMenu::item(int i) const {
+    switch(i) {
+        case 0 : return "1 Set Cutoff V  ";
+        case 1 : return "2 Set Cutoff Dir";
+        case 2 : return "3 Adjust +V Intf";
+        case 3 : return "4 Adjust -V Intf";
+        default : return "WTF?";
+    }
+}
+
+Screen * MainMenu::screen(int i) const {
+    switch(i) {
+        case 0 : return controller->getCutoffVoltageScreen();
+        case 1 : return controller->getCutoffDirectionScreen();
+        case 2 : return controller->getAdjustPInterferenceScreen();
+        case 3 : return controller->getAdjustNInterferenceScreen();
+        default : return controller->getHomeScreen();
+    }
 }
 
 VotageUpdateScreen::VotageUpdateScreen(Controller *controller) : Screen(controller) {}
@@ -270,8 +289,8 @@ void VotageUpdateScreen::enter() {
 void VotageUpdateScreen::updateValue() const {
     char line[17];
     sprintf(line, "->%c%i.%i (was%c%i.%i)",
-            sign(newValue), ones(newValue), tenths(newValue),
-            sign(oldValue), ones(oldValue), tenths(oldValue));
+            s1gn(newValue), ones(newValue), tenths(newValue),
+            s1gn(oldValue), ones(oldValue), tenths(oldValue));
     controller->getDisplay()->showLine2(line);
 }
 

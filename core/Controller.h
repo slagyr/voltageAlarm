@@ -72,15 +72,10 @@ public:
 
     void update() override;
 
-public:
-
     void updateDisplay(int top) const;
-
-    const char *items[4] = {"1 Set Cutoff V  ",
-                            "2 Set Cutoff Dir",
-                            "3 Adjust +V Intf",
-                            "4 Adjust -V Intf"};
-    Screen *screens[4] = {nullptr, nullptr, nullptr, nullptr};
+private:
+    const char *item(int i) const;
+    Screen * screen(int i) const;
     int selectedIndex;
     bool scrollingDown;
     int lastRotaryPosition;
