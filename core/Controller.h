@@ -56,8 +56,8 @@ public:
 
     void update() override;
 
-    double lastPVolts = -99.9;
-    double lastNVolts = -99.9;
+    float lastPVolts = -99.9f;
+    float lastNVolts = -99.9f;
 
     void updateInfo(bool force);
 };

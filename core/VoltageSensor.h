@@ -8,7 +8,7 @@ class VoltageSensor {
 public:
 
     VoltageSensor(Hardware *hardware, uint8_t pin);
-    virtual double readVoltage();
+    virtual float readVoltage();
     Hardware* getHardware();
     uint8_t getPin();
     void setInterferenceAdjustment(float error);

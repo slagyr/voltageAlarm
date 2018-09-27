@@ -6,9 +6,9 @@
 
 class Note {
 public:
-    Note(unsigned int frequency, unsigned long duration);
-    unsigned int frequency;
-    unsigned long duration;
+    Note(unsigned short frequency, unsigned short duration);
+    unsigned short frequency;
+    unsigned short duration;
     bool operator==(const Note& rhs) const;
 };
 
@@ -19,30 +19,34 @@ public:
     Hardware* getHardware();
     void setup();
     uint8_t getPin();
-    void addNote(unsigned int frequency, unsigned long duration);
+    void addNote(unsigned short frequency, unsigned short duration);
     int countNotes();
-    Note* getNote(int index);
-    void setWholeNoteDuration(unsigned long duration);
-    unsigned long getNoteDuration(int index);
-    unsigned long getPauseBetweenNotes();
-    void setPauseBetweenNotes(unsigned long duration);
+    Note* getNote(unsigned short index);
+    void setWholeNoteDuration(unsigned short duration);
+    unsigned short getNoteDuration(unsigned short index);
+    unsigned short getPauseBetweenNotes();
+    void setPauseBetweenNotes(unsigned short duration);
     void play();
     bool isLoop();
     void setLoop(bool b);
-    unsigned long getLoopDelay();
-    void setLoopDelay(unsigned long duration);
+    unsigned short getLoopDelay();
+    void setLoopDelay(unsigned short duration);
 
 
 private:
+    unsigned short duration(unsigned short duration) const;
+
     Hardware *hardware;
     uint8_t pin;
     LinkedList<Note*> notes;
-    unsigned long durations[10];
-    unsigned long pauseBetweenNotes;
-    int nextNote;
+    unsigned short wholeNoteDuration;
+//    unsigned long durations[10];
+    unsigned short pauseBetweenNotes;
+    unsigned short nextNote;
     unsigned long finishTime;
     bool loop;
-    unsigned long loopDelay;
+    unsigned short loopDelay;
+
 };
 
 #define DOUBLE_NOTE 0

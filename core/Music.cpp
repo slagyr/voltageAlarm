@@ -1,6 +1,6 @@
 #include "Music.h"
 
-Note::Note(unsigned int frequency, unsigned long duration) {
+Note::Note(unsigned short frequency, unsigned short duration) {
     this->frequency = frequency;
     this->duration = duration;
 }
@@ -32,59 +32,76 @@ uint8_t Music::getPin() {
     return pin;
 }
 
-void Music::addNote(unsigned int frequency, unsigned long duration) {
-    if(duration < 10)
-        duration = durations[duration];
+void Music::addNote(unsigned short frequency, unsigned short duration) {
+    if (duration < 10)
+        duration = this->duration(duration);
     notes.add(new Note(frequency, duration));
+}
+
+unsigned short Music::duration(unsigned short i) const {
+    switch (i) {
+        case DOUBLE_NOTE :
+            return wholeNoteDuration * 2;
+        case WHOLE_NOTE :
+            return wholeNoteDuration;
+        case SEVEN_EIGHTHS_NOTE :
+            return wholeNoteDuration * 7 / 8;
+        case THREE_QUARTERS_NOTE :
+            return wholeNoteDuration * 3 / 4;
+        case FIVE_EIGHTHS_NOTE :
+            return wholeNoteDuration * 5 / 8;
+        case HALF_NOTE :
+            return wholeNoteDuration / 2;
+        case THREE_EIGHTHS_NOTE :
+            return wholeNoteDuration * 3 / 8;
+        case QUARTER_NOTE :
+            return wholeNoteDuration / 4;
+        case EIGHTH_NOTE :
+            return wholeNoteDuration / 8;
+        case SIXTEENTH_NOTE :
+            return wholeNoteDuration / 16;
+        default :
+            return i;
+    }
 }
 
 int Music::countNotes() {
     return notes.size();
 }
 
-Note *Music::getNote(int index) {
+Note *Music::getNote(unsigned short index) {
     return notes.get(index);
 }
 
-void Music::setWholeNoteDuration(unsigned long duration) {
-    durations[DOUBLE_NOTE] = duration * 2;
-    durations[WHOLE_NOTE] = duration;
-    durations[SEVEN_EIGHTHS_NOTE] = duration * 7 / 8;
-    durations[THREE_QUARTERS_NOTE] = duration * 3 / 4;
-    durations[FIVE_EIGHTHS_NOTE] = duration * 5 / 8;
-    durations[HALF_NOTE] = duration / 2;
-    durations[THREE_EIGHTHS_NOTE] = duration * 3 / 8;
-    durations[QUARTER_NOTE] = duration / 4;
-    durations[EIGHTH_NOTE] = duration / 8;
-    durations[SIXTEENTH_NOTE] = duration / 16;
+void Music::setWholeNoteDuration(unsigned short duration) {
+    wholeNoteDuration = duration;
 }
 
-unsigned long Music::getNoteDuration(int index) {
-    return durations[index];
+unsigned short Music::getNoteDuration(unsigned short index) {
+    return duration(index);
 }
 
-unsigned long Music::getPauseBetweenNotes() {
+unsigned short Music::getPauseBetweenNotes() {
     return pauseBetweenNotes;
 }
 
-void Music::setPauseBetweenNotes(unsigned long duration) {
+void Music::setPauseBetweenNotes(unsigned short duration) {
     pauseBetweenNotes = duration;
 }
 
 void Music::play() {
     int noteCount = notes.size();
-    if(nextNote < noteCount) {
+    if (nextNote < noteCount) {
         Note *note = notes.get(nextNote);
         unsigned long now = hardware->getMillis();
-        if(now >= finishTime)
-        {
+        if (now >= finishTime) {
             nextNote++;
             finishTime = now + note->duration;
-            if(loop && nextNote >= noteCount) {
+            if (loop && nextNote >= noteCount) {
                 nextNote = 0;
                 finishTime += loopDelay;
             }
-            if(note->frequency >= 31) // otherwise a rest
+            if (note->frequency >= 31) // otherwise a rest
                 hardware->playNote(pin, note->frequency, note->duration - pauseBetweenNotes);
         }
     }
@@ -98,10 +115,10 @@ void Music::setLoop(bool b) {
     loop = b;
 }
 
-unsigned long Music::getLoopDelay() {
+unsigned short Music::getLoopDelay() {
     return loopDelay;
 }
 
-void Music::setLoopDelay(unsigned long duration) {
+void Music::setLoopDelay(unsigned short duration) {
     loopDelay = duration;
 }

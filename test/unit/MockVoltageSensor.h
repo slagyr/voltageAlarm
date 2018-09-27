@@ -8,11 +8,11 @@ public:
     MockVoltageSensor() : VoltageSensor(nullptr, 0) {
     }
 
-    double readVoltage() override {
+    float readVoltage() override {
         return volts;
     }
 
-    double volts = 5.0;
+    float volts = 5.0;
 };
 
 #endif

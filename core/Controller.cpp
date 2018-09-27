@@ -165,13 +165,9 @@ bool fEq(float d1, float d2) {
 
 HomeScreen::HomeScreen(Controller *controller) : Screen(controller) {}
 
-unsigned long HomeScreen::getIdleTimeout() {
-    return 60000;
-}
+unsigned long HomeScreen::getIdleTimeout() { return 60000; }
 
-const char *HomeScreen::getName() {
-    return "Home";
-}
+const char *HomeScreen::getName() { return "Home"; }
 
 void HomeScreen::enter() {
     controller->getDisplay()->hideCursor();
@@ -186,8 +182,8 @@ void HomeScreen::update() {
 }
 
 void HomeScreen::updateInfo(bool force) {
-    double pVolts = controller->getLoadPositiveSensor()->readVoltage();
-    double nVolts = controller->getLoadNegativeSensor()->readVoltage();
+    float pVolts = controller->getLoadPositiveSensor()->readVoltage();
+    float nVolts = controller->getLoadNegativeSensor()->readVoltage();
     bool pVoltChanged = !fEq(lastPVolts, pVolts);
     bool nVoltChanged = !fEq(lastNVolts, nVolts);
 
@@ -212,9 +208,7 @@ void HomeScreen::updateInfo(bool force) {
 MainMenu::MainMenu(Controller *controller) : Screen(controller) {
 }
 
-const char *MainMenu::getName() {
-    return "Main Menu";
-}
+const char *MainMenu::getName() { return "Main Menu"; }
 
 void MainMenu::enter() {
     selectedIndex = 0;
@@ -256,22 +250,32 @@ void MainMenu::updateDisplay(int top) const {
 // switch/case is used here instead of array to avoid consuming RAM
 // This uses program space instead
 const char *MainMenu::item(int i) const {
-    switch(i) {
-        case 0 : return "1 Set Cutoff V  ";
-        case 1 : return "2 Set Cutoff Dir";
-        case 2 : return "3 Adjust +V Intf";
-        case 3 : return "4 Adjust -V Intf";
-        default : return "WTF?";
+    switch (i) {
+        case 0 :
+            return "1 Set Cutoff V  ";
+        case 1 :
+            return "2 Set Cutoff Dir";
+        case 2 :
+            return "3 Adjust +V Intf";
+        case 3 :
+            return "4 Adjust -V Intf";
+        default :
+            return "WTF?";
     }
 }
 
-Screen * MainMenu::screen(int i) const {
-    switch(i) {
-        case 0 : return controller->getCutoffVoltageScreen();
-        case 1 : return controller->getCutoffDirectionScreen();
-        case 2 : return controller->getAdjustPInterferenceScreen();
-        case 3 : return controller->getAdjustNInterferenceScreen();
-        default : return controller->getHomeScreen();
+Screen *MainMenu::screen(int i) const {
+    switch (i) {
+        case 0 :
+            return controller->getCutoffVoltageScreen();
+        case 1 :
+            return controller->getCutoffDirectionScreen();
+        case 2 :
+            return controller->getAdjustPInterferenceScreen();
+        case 3 :
+            return controller->getAdjustNInterferenceScreen();
+        default :
+            return controller->getHomeScreen();
     }
 }
 
@@ -317,13 +321,13 @@ void VotageUpdateScreen::update() {
 
 CutoffVoltageScreen::CutoffVoltageScreen(Controller *controller) : VotageUpdateScreen(controller) {}
 
-const char *CutoffVoltageScreen::getName() { return "Cutoff Voltage";}
+const char *CutoffVoltageScreen::getName() { return "Cutoff Voltage"; }
 
 float CutoffVoltageScreen::storedValue() const {
     return Screen::controller->getConfig()->cutoffVoltage;
 }
 
-const char *CutoffVoltageScreen::title() { return "Cutoff Voltage  ";}
+const char *CutoffVoltageScreen::title() { return "Cutoff Voltage  "; }
 
 float CutoffVoltageScreen::minVoltage() const { return 0; }
 
@@ -335,9 +339,7 @@ void CutoffVoltageScreen::updateStoredValue(float value) const {
 
 CutoffDirectionScreen::CutoffDirectionScreen(Controller *controller) : Screen(controller) {}
 
-const char *CutoffDirectionScreen::getName() {
-    return "Cutoff Direction";
-}
+const char *CutoffDirectionScreen::getName() { return "Cutoff Direction"; }
 
 void CutoffDirectionScreen::enter() {
     oldValue = controller->getConfig()->cutoffDirection;
@@ -383,13 +385,13 @@ void CutoffDirectionScreen::updateValue() const {
 
 AdjustPInterefenceScreen::AdjustPInterefenceScreen(Controller *controller) : VotageUpdateScreen(controller) {}
 
-const char *AdjustPInterefenceScreen::getName() {return "Adjust +V Intrf";}
+const char *AdjustPInterefenceScreen::getName() { return "Adjust +V Intrf"; }
 
 float AdjustPInterefenceScreen::storedValue() const {
     return controller->getConfig()->pVoltageInterference;
 }
 
-const char *AdjustPInterefenceScreen::title() {return "Adjust +V Intrf ";}
+const char *AdjustPInterefenceScreen::title() { return "Adjust +V Intrf "; }
 
 float AdjustPInterefenceScreen::minVoltage() const { return -5.0f; }
 
@@ -402,13 +404,13 @@ void AdjustPInterefenceScreen::updateStoredValue(float value) const {
 
 AdjustNInterefenceScreen::AdjustNInterefenceScreen(Controller *controller) : VotageUpdateScreen(controller) {}
 
-const char *AdjustNInterefenceScreen::getName() {return "Adjust -V Intrf";}
+const char *AdjustNInterefenceScreen::getName() { return "Adjust -V Intrf"; }
 
 float AdjustNInterefenceScreen::storedValue() const {
     return controller->getConfig()->nVoltageInterference;
 }
 
-const char *AdjustNInterefenceScreen::title() {return "Adjust -V Intrf ";}
+const char *AdjustNInterefenceScreen::title() { return "Adjust -V Intrf "; }
 
 float AdjustNInterefenceScreen::minVoltage() const { return -5.0f; }
 
