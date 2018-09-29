@@ -75,8 +75,8 @@ void Controller::tick(unsigned long millis) {
         nextVoltReadTime += VOLT_READ_INTERVAL;
         loadPositive->readVoltage();
         loadNegative->readVoltage();
-        state->run(loadPositive->getLastReading());
     }
+    state->run(loadPositive->getLastReading());
     if (millis > lastUserEventTime + screen->getIdleTimeout()) {
         setScreen(getHomeScreen());
         lastUserEventTime = millis;

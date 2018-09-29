@@ -51,7 +51,7 @@ void setup() {
     loadPositiveSensor = new VoltageSensor(hardware, 0);
     loadNagativeSensor = new VoltageSensor(hardware, 3);
     config = new EEPROMConfig();
-    load = new Switch(hardware, 6);
+    load = new Switch(hardware, 6, false);
     controller = new Controller(hardware, loadPositiveSensor, loadNagativeSensor, display, rotary, config, alarm, warning, load);
 
     hereComesTheSun(warning);
@@ -64,6 +64,7 @@ void setup() {
 
     Serial.print("mem: ");
     Serial.println(availableMemory());
+
 }
 
 void loop() {
