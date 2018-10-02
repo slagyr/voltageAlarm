@@ -10,12 +10,15 @@ public:
     Switch(Hardware *hardware, uint8_t pin);
     Switch(Hardware *hardware, uint8_t pin, bool pullUp);
 
-    void setup();
+    virtual void setup();
     uint8_t getPin() const;
-    void on();
-    void off();
+
+    virtual void on();
+
+    virtual void off();
     bool isOn();
     bool isIsPullUp() const;
+    Hardware* getHardware();
 
 private:
 

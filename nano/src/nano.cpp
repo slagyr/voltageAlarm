@@ -8,6 +8,7 @@
 #include "Controller.h"
 #include "LCDDisplay.h"
 #include "EEPROMConfig.h"
+#include "LinkedSwitch.h"
 
 #define FETPin 6
 
@@ -20,7 +21,9 @@ Music *alarm;
 VoltageSensor *loadPositiveSensor;
 VoltageSensor *loadNagativeSensor;
 Config *config;
-Switch *load;
+LinkedSwitch *load;
+LinkedSwitch *greenLight;
+Switch *redLight;
 Controller *controller;
 
 void rotaryRotated() { rotary->handleRotation(); }
@@ -51,7 +54,11 @@ void setup() {
     loadPositiveSensor = new VoltageSensor(hardware, 0);
     loadNagativeSensor = new VoltageSensor(hardware, 3);
     config = new EEPROMConfig();
-    load = new Switch(hardware, 6, false);
+    load = new LinkedSwitch(hardware, 6, false);
+    greenLight = new LinkedSwitch(hardware, A6, true);
+    redLight = new Switch(hardware, A5, false);
+    greenLight->setNext(redLight);
+    load->setNext(greenLight);
     controller = new Controller(hardware, loadPositiveSensor, loadNagativeSensor, display, rotary, config, alarm, warning, load);
 
     hereComesTheSun(warning);

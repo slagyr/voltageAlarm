@@ -40,3 +40,7 @@ uint8_t Switch::getPin() const {
 bool Switch::isIsPullUp() const {
     return isPullUp;
 }
+
+Hardware *Switch::getHardware() {
+    return hardware;
+}
