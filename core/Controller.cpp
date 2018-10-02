@@ -53,6 +53,8 @@ void Controller::setup() {
     loadPositive->setInterferenceAdjustment(config->pVoltageInterference);
     loadNegative->setInterferenceAdjustment(config->nVoltageInterference);
 
+    loadSwitch->off();
+
     setScreen(splash);
     setState(idleState);
 }
