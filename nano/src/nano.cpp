@@ -26,9 +26,9 @@ LinkedSwitch *greenLight;
 Switch *redLight;
 Controller *controller;
 
-void rotaryRotated() { Serial.println("rotate"); rotary->handleRotation(); }
+void rotaryRotated() { rotary->handleRotation(); }
 
-void rotaryClicked() { Serial.println("click"); rotary->handleClick(); }
+void rotaryClicked() { rotary->handleClick(); }
 
 int availableMemory() {
     int size = 2048; // Use 2048 with ATmega328
@@ -51,12 +51,12 @@ void setup() {
     display = new LCDDisplay(lcd);
     warning = new Music(hardware, 5);
     alarm = new Music(hardware, 5);
-    loadPositiveSensor = new VoltageSensor(hardware, 0);
-    loadNagativeSensor = new VoltageSensor(hardware, 3);
+    loadPositiveSensor = new VoltageSensor(hardware, 3);
+    loadNagativeSensor = new VoltageSensor(hardware, 0);
     config = new EEPROMConfig();
     load = new LinkedSwitch(hardware, 6, false);
     greenLight = new LinkedSwitch(hardware, A5, true);
-    redLight = new Switch(hardware, A6, false);
+    redLight = new Switch(hardware, A4, false);
     greenLight->setNext(redLight);
     load->setNext(greenLight);
     controller = new Controller(hardware, loadPositiveSensor, loadNagativeSensor, display, rotary, config, alarm, warning, load);
